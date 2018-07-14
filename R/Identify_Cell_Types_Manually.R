@@ -14,6 +14,8 @@ featureplot <- function(x,object = Glioma,...){
     return(p)
 }
 # Cell Type Marker gene database
+Housekeeping <- HumanGenes(Glioma,c("RNR2","Rpl4","Actb","Gnas",
+                                    "Tubb","Kras","Calb1"))
 # Stem cell=======
 Embryonic_SCs <- HumanGenes(Glioma,c("ALPL","ALPP","ALPI","ALPPL2","TNFRSF8","TDGF1",
                                    "PODXL","NR6A1","POU5F1","B3GALNT1",
@@ -34,7 +36,7 @@ HSC <- HumanGenes(Glioma,c("CD34","CD38","KIT","ATXN1","THY1",
                          mouse_lin,human_lin),unique = T)
 Collagen <- HumanGenes(Glioma,c("COL2A1","COL1A1","COL1A2"),unique =T)
 
-Housekeeping <- HumanGenes(Glioma,c("Rnr2","Rpl4","Actb","Gnas","Tubb5","Kras","Calb1"))
+
 # Blood Vessel=====
 Endothelium <- HumanGenes(Glioma,c("Cdh5","Pecam1","Flt1","Plvap","Kdr","ptprb",
                                  "Vwf","EMCN","Car4","VEGFA"))
@@ -55,13 +57,14 @@ X_chromosome <- HumanGenes(Glioma,c("Xist"))
 Hepatocyte <- HumanGenes(Glioma,c("ALB","ITGB1"))
 
 # Nervous System
-Neuron2A <- HumanGenes(Glioma,c("Tmod2","Skil","Slc30a1","Erbb2ip","PCDHA@","Vgf","Gabrb3"))
+Neuron2A <- HumanGenes(Glioma,c("Tmod2","Skil","Slc30a1","Erbb2ip","PCDHA5",
+                                "Vgf","Gabrb3"))
 
-Epithelium <- HumanGenes(Glioma,c("Epcam","KRT19","KRT5",
-                               "MUC1","SCGB3A2","SCGB1A1","SCGB3A1","SFTPB","FOXJ1","Rpe65",
-                               "Rlbp1","Msln","Upk3b","Lrrn4"))
 RPE <- HumanGenes(Glioma,c("Rpe65","Rlbp1"))
-Fibroblast <- HumanGenes(Glioma,c("FGF1","FGF9","SFRP1"))
+
+S1Pyr <-HumanGenes(Glioma,c("Tbr1","Rasgrf2","RASGRF1","Pvrl3","Cux2","Rorb","Plcxd2",
+                            "Thsd7a","Kcnk2","Cplx3","Sulf2","Foxp2","Syt6","Rprm",
+                            "Nr4a2","Synpr","Pcp4"))
 
 # Bone Marrow and Blood ===
 Mesenchymal <- HumanGenes(Glioma,c("Pdgfrb","Vim","Has2","Dcn"))
@@ -131,7 +134,10 @@ Stromal_fibroblasts <- HumanGenes(Glioma,c("DCN","COL6A1","TIMP3","PDGFRA"))
 Neurons <- HumanGenes(Glioma,c("Ihh","Gli1", "Ptch1", "Hhip"))
 CellCycle <- HumanGenes(Glioma,c("CCND1","CCND2","CCND3","CDK4","CDK6","PCNA","SOX11",
                                "RB1","E2F1","TK1","CCNA2","MKI67","CDK1"))
-
+Fibroblast <- HumanGenes(Glioma,c("FGF1","FGF9","SFRP1"))
+Epithelium <- HumanGenes(Glioma,c("Epcam","KRT19","KRT5",
+                                  "MUC1","SCGB3A2","SCGB1A1","SCGB3A1","SFTPB","FOXJ1","Rpe65",
+                                  "Rlbp1","Msln","Upk3b","Lrrn4"))
 # undifferentiated spermatogonia
 uGlioma_As_only <- HumanGenes(Glioma,c("ID4","PAX7","BMI1","EOMES","GFRA1","FGFR3"))# As undifferentiated spermatogonia only
 uGlioma_As_pr_al4 <- HumanGenes(Glioma,c("NANOS2","UTF1","ZBTB16","SALL4","LIN28A",
@@ -148,6 +154,8 @@ spermatozoids <- HumanGenes(Glioma,c("THY1","STRC","DEL15Q15.3","DAZ1","DAZ2","D
 defective_spermatozoa <- HumanGenes(Glioma,c("TXNDC8","TXNDC2","ALOX15","NME8")) #TXNDC8(SPTRX3), ALOX15(15-LOX)
 
 # featureplot
+featureplot(Housekeeping)
+featureplot(Embryonic_SCs)
 featureplot(Adipocytes) # Adipocytes
 featureplot(Endothelium) # Endothelial Cells
 featureplot(Epithelium) # Epithelium
@@ -201,7 +209,7 @@ featureplot(Neurons)
 AllMarkers <- FindAllMarkers.UMI(Glioma, logfc.threshold = 0.25,
                                  min.pct = 0.25,only.pos = T)
 write.csv(AllMarkers,"./output/AllMarkers.csv")
-AllMarkers <- readr::read_csv("output/AllMarkers.csv")
+AllMarkers <- readr::read_csv("./output/AllMarkers.csv")
 
 MarkerList <- list("Embryonic Stem Cells"=Embryonic_SCs,
                    "Ectoderm"=Ectoderm,

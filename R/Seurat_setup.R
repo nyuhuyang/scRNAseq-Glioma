@@ -157,9 +157,9 @@ Glioma <- RunPCA(object = Glioma, pc.genes = hv.genes, pcs.compute = 100, do.pri
               pcs.print = 1:5, genes.print = 5)
 PCElbowPlot(object = Glioma, num.pc = 100)
 PCHeatmap(Glioma, pc.use = c(1:3, 70:75), cells.use = 500, do.balanced = TRUE)
-Glioma <- StashIdent(object = Glioma, save.name = "tSNE_3.0")
+Glioma <- StashIdent(object = Glioma, save.name = "cca_3.0")
 Glioma <- FindClusters(object = Glioma, reduction.type = "pca", dims.use = 1:75, resolution = 3, 
-                    save.SNN = TRUE, n.start = 10, nn.eps = 0.5, print.output = FALSE)
+                    save.SNN = TRUE, n.start = 10,force.recalc=T, nn.eps = 0.5, print.output = FALSE)
 Glioma <- RunTSNE(object = Glioma, reduction.use = "pca", dims.use = 1:75, tsne.method = "FIt-SNE", 
                nthreads = 4, reduction.name = "FItSNE", reduction.key = "FItSNE_", 
                fast_tsne_path = "/Users/yah2014/src/FIt-SNE/bin/fast_tsne", 
@@ -178,12 +178,5 @@ p2 <- DimPlot(object = Glioma, reduction.use = "FItSNE", no.legend = TRUE,
         theme(plot.title = element_text(hjust = 0.5))
 
 plot_grid(p1, p2)
-table(Glioma@ident)
-TSNEPlot(object = Glioma,do.label = TRUE, group.by = "ident", 
-         do.return = TRUE, no.legend = TRUE,
-         pt.size = 1,label.size = 8 )+
-        ggtitle("tSNEplot for all cell clusters")+
-        theme(text = element_text(size=20),     #larger text including legend title							
-              plot.title = element_text(hjust = 0.5)) #title in middle
-Glioma <- SetAllIdent(object = Glioma, id = "tSNE_3.0")
+Glioma <- StashIdent(object = Glioma, save.name = "pca_3.0")
 save(Glioma, file = "./data/Glioma_alignment.Rda")
