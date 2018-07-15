@@ -73,6 +73,7 @@ Glioma <- RunMultiCCA(object.list = Glioma_Seurat,
                     genes.use = genes.use,
                     niter = 25, num.ccs = 50,
                     standardize =TRUE)
+Glioma@project.name="EC-AL-5196"
 save(Glioma, file = "./data/Glioma_alignment.Rda")
 
 # CCA plot CC1 versus CC2 and look at a violin plot

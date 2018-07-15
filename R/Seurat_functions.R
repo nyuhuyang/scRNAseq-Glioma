@@ -13,7 +13,6 @@ CountsbyIdent <- function(object = SSCs, subset.name = "Txndc8", accept.low = 1,
 }
 
 
-
 #### For FeatureHeatmap() ####
 #https://github.com/satijalab/seurat/issues/235
 # Function to pseudo customize FeatureHeatmap
@@ -1221,6 +1220,12 @@ GC <- function()
 }
 
 
+
+randomStrings <- function(n = 5000) {
+        a <- do.call(paste0, replicate(5, sample(LETTERS, n, TRUE), FALSE))
+        paste0(a, sprintf("%04d", sample(9999, n, TRUE)), sample(LETTERS, n, TRUE))
+}
+
 SplitDotPlotGG.1 <- function (object, grouping.var, genes.plot,
                               gene.groups, cols.use = c("blue","red"),
                               col.min = -2.5, col.max = 2.5, 
@@ -1353,7 +1358,3 @@ Types2Markers <- function(df, by = "Cell_Type"){
         return(List)
 }
 
-randomStrings <- function(n = 5000) {
-        a <- do.call(paste0, replicate(5, sample(LETTERS, n, TRUE), FALSE))
-        paste0(a, sprintf("%04d", sample(9999, n, TRUE)), sample(LETTERS, n, TRUE))
-}
