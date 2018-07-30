@@ -752,94 +752,106 @@ SingleFeaturePlot.1 <- function (object = object, feature = feature, pt.size = 1
 }
 
 
-SingleR.PlotTsne.1 <- function (SingleR, xy, labels = SingleR$labels, clusters = NULL, 
-          do.letters = TRUE, dot.size = 1, do.labels = FALSE, do.legend = TRUE, 
-          label.size = 3, title = "", colors = singler.colors, font.size = NULL, 
-          alpha = 0.5) 
+SingleR.PlotTsne.1 <- function (SingleR, xy, labels = SingleR$labels, clusters = NULL,
+do.letters = TRUE, dot.size = 1, do.labels = FALSE, do.legend = TRUE,
+label.size = 3, title = "", colors = singler.colors, font.size = NULL,
+alpha = 0.5,text.repel = TRUE, label.repel = FALSE,force=1)
 {
         # rewrite function to add label and legend
-        if (do.labels == TRUE) 
-                do.letters = FALSE
+        if (do.labels == TRUE)
+        do.letters = FALSE
         df = data.frame(row.names = SingleR$cell.names)
-        df$x = xy[, 1]
-        df$y = xy[, 2]
+                df$x = xy[, 1]
+                df$y = xy[, 2]
         if (SingleR$method == "cluster") {
                 df$ident = clusters.map.values(clusters, labels)
-        }
+                }
         else {
                 df$ident = as.factor(labels)
         }
         if (sum(levels(df$ident) %in% "Other")) {
                 lev = levels(df$ident)
-                df$ident = factor(df$ident, levels = c(lev[-which(lev %in% 
-                                                                          "Other")], "Other"))
+                df$ident = factor(df$ident, levels = c(lev[-which(lev %in%
+                "Other")], "Other"))
         }
         num.levels = length(levels(df$ident))
-        if (num.levels < 0) 
+        if (num.levels < 0)
                 colors = getcol(c(1:length(unique(labels))))
-        p = ggplot(df, aes(x = x, y = y))
-        p = p + geom_point(aes(color = ident), size = dot.size, 
-                           alpha = alpha)
+                p = ggplot(df, aes(x = x, y = y,color = ident))
+                p = p + geom_point(aes(color = ident), size = dot.size,
+                alpha = alpha)
         if (do.letters == TRUE) {
-                p = p + geom_point(aes(shape = as.character(ident), 
-                                       text = ident), size = dot.size/2)
+                p = p + geom_point(aes(shape = as.character(ident),
+                text = ident), size = dot.size/2)
                 p = p + scale_shape_identity()
         }
         else {
         }
         if (do.labels == TRUE) {
-                centers <- df %>% dplyr::group_by(ident) %>% dplyr::summarize(x = median(x), 
-                                                                       y = median(y))
-                p = p + geom_point(data = centers, aes(x = x, y = y), 
-                                   size = 0, alpha = 0) + geom_text(data = centers, 
-                                                                    aes(label = ident), size = label.size, fontface = "bold")
-                p = p + guides(colour = FALSE)
-                x.range = layer_scales(p)$x$range$range
-                add_to_x = sum(abs(x.range)) * 0.03
-                p = p + xlim(x.range[1] - add_to_x, x.range[2] + add_to_x)
-                if (num.levels > 35 & num.levels < 60) {
-                        p = p + theme(legend.position = "bottom", legend.direction = "vertical", 
-                                      legend.text = element_text(size = 6), legend.title = element_blank()) + 
-                                guides(col = guide_legend(ncol = 5))
-                }
-                else if (num.levels > 60) {
-                        p = p + theme(legend.position = "bottom", legend.direction = "vertical", 
-                                      legend.text = element_text(size = 6), legend.title = element_blank()) + 
-                                guides(col = guide_legend(ncol = 9))
-                }
-                else {
-                        p = p + theme(legend.text = element_text(size = font.size), 
-                                      legend.title = element_blank()) + guides(col = guide_legend(ncol = 1))
-                }
+                centers <- df %>% dplyr::group_by(ident) %>% dplyr::summarize(x = median(x),
+                y = median(y))
+                p = p + geom_point(data = centers, aes(x = x, y = y),
+                size = 0, alpha = 0)
+        if (label.repel == TRUE) {
+                p = p + ggrepel::geom_label_repel(data = centers,
+                aes(label = ident),
+                fontface = "bold",
+                force = force)
+        }
+        else if (text.repel == TRUE){
+                p = p + ggrepel::geom_text_repel(data = centers, aes(x = x,
+                y = y,
+                label = ident),
+                fontface = "bold",force = force,
+                inherit.aes = FALSE)
+        }
+        p = p + guides(colour = FALSE)
+        x.range = layer_scales(p)$x$range$range
+        add_to_x = sum(abs(x.range)) * 0.03
+        p = p + xlim(x.range[1] - add_to_x, x.range[2] + add_to_x)
+        if (num.levels > 35 & num.levels < 60) {
+                p = p + theme(legend.position = "bottom", legend.direction = "vertical",
+                legend.text = element_text(size = 6), legend.title = element_blank()) +
+                guides(col = guide_legend(ncol = 5))
+        }
+        else if (num.levels > 60) {
+                p = p + theme(legend.position = "bottom", legend.direction = "vertical",
+                legend.text = element_text(size = 6), legend.title = element_blank()) +
+                guides(col = guide_legend(ncol = 9))
         }
         else {
-                if (is.null(font.size)) {
-                        font.size = 250 * (1/num.levels)
-                        font.size = max(font.size, 5)
-                        font.size = min(font.size, 10)
-                }
-                if (num.levels > 35 & num.levels < 60) {
-                        p = p + theme(legend.position = "bottom", legend.direction = "vertical", 
-                                      legend.text = element_text(size = 6), legend.title = element_blank()) + 
-                                guides(col = guide_legend(ncol = 5))
-                }
-                else if (num.levels > 60) {
-                        p = p + theme(legend.position = "bottom", legend.direction = "vertical", 
-                                      legend.text = element_text(size = 6), legend.title = element_blank()) + 
-                                guides(col = guide_legend(ncol = 9))
-                }
-                else {
-                        p = p + theme(legend.text = element_text(size = font.size), 
-                                      legend.title = element_blank()) + guides(col = guide_legend(ncol = 1))
-                }
+                p = p + theme(legend.text = element_text(size = font.size),
+                legend.title = element_blank()) + guides(col = guide_legend(ncol = 1))
         }
-        p = p + scale_color_manual(name = "Type", values = colors)
-        p = p + xlab("tSNE 1") + ylab("tSNE 2") + ggtitle(title)
+        }
+        else {
+        if (is.null(font.size)) {
+            font.size = 250 * (1/num.levels)
+                font.size = max(font.size, 5)
+                font.size = min(font.size, 10)
+        }
+        if (num.levels > 35 & num.levels < 60) {
+            p = p + theme(legend.position = "bottom", legend.direction = "vertical",
+                legend.text = element_text(size = 6), legend.title = element_blank()) +
+                guides(col = guide_legend(ncol = 5))
+        }
+        else if (num.levels > 60) {
+            p = p + theme(legend.position = "bottom", legend.direction = "vertical",
+                legend.text = element_text(size = 6), legend.title = element_blank()) +
+                guides(col = guide_legend(ncol = 9))
+        }
+        else {
+                p = p + theme(legend.text = element_text(size = font.size),
+                legend.title = element_blank()) + guides(col = guide_legend(ncol = 1))
+        }
+        }
+                p = p + scale_color_manual(name = "Type", values = colors)
+                p = p + xlab("tSNE 1") + ylab("tSNE 2") + ggtitle(title)
         if (do.legend == FALSE) {
                 p = p + theme(legend.position = "none")
         }
-        p = p + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                      panel.background = element_blank(), axis.line = element_line(colour = "black"))
+        p = p + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
         out = list(p = p, df = df, num.levels = num.levels)
 }
 

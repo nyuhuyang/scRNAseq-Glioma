@@ -133,7 +133,7 @@ Glioma <- RunTSNE(object = Glioma, reduction.use = "cca.aligned", dims.use = 1:2
                       do.fast = TRUE)
 
 p1 <- TSNEPlot(Glioma, do.return = T, pt.size = 1, no.legend = TRUE,
-               do.label = TRUE,group.by = "orig.ident",label.size = 8) + 
+               do.label = TRUE,group.by = "orig.ident",label.size = 6) + 
         ggtitle("Samples") + 
         theme(plot.title = element_text(hjust = 0.5))
 p2 <- TSNEPlot(Glioma, do.return = T, pt.size = 1, no.legend = TRUE,
@@ -161,23 +161,8 @@ PCHeatmap(Glioma, pc.use = c(1:3, 70:75), cells.use = 500, do.balanced = TRUE)
 Glioma <- StashIdent(object = Glioma, save.name = "cca_3.0")
 Glioma <- FindClusters(object = Glioma, reduction.type = "pca", dims.use = 1:75, resolution = 3, 
                     save.SNN = TRUE, n.start = 10,force.recalc=T, nn.eps = 0.5, print.output = FALSE)
-Glioma <- RunTSNE(object = Glioma, reduction.use = "pca", dims.use = 1:75, tsne.method = "FIt-SNE", 
-               nthreads = 4, reduction.name = "FItSNE", reduction.key = "FItSNE_", 
-               fast_tsne_path = "/Users/yah2014/src/FIt-SNE/bin/fast_tsne", 
-               max_iter = 2000)
-library(cowplot)
-p1 <- DimPlot(object = Glioma, reduction.use = "FItSNE", no.legend = TRUE,
-              do.return = TRUE,vector.friendly = F, pt.size = 1,
-              do.label = TRUE,label.size = 8, group.by = "conditions") + 
-        ggtitle("Samples") + 
-        theme(plot.title = element_text(hjust = 0.5))
+Glioma <- RunTSNE(object = Glioma, reduction.use = "pca", dims.use = 1:75, tsne.method = "Rtsne", 
+               nthreads = 4, reduction.name = "tsne", reduction.key = "tSNE_",do.fast = TRUE)
 
-p2 <- DimPlot(object = Glioma, reduction.use = "FItSNE", no.legend = TRUE,
-              do.return = TRUE,vector.friendly = F, pt.size = 1,
-              do.label = TRUE,label.size = 8, group.by = "ident") + 
-        ggtitle("Cluster ID") + 
-        theme(plot.title = element_text(hjust = 0.5))
-
-plot_grid(p1, p2)
 Glioma <- StashIdent(object = Glioma, save.name = "pca_3.0")
 save(Glioma, file = "./data/Glioma_alignment.Rda")
