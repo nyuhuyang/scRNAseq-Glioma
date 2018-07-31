@@ -157,12 +157,11 @@ hv.genes <- head(rownames(Glioma@hvg.info), 1000)
 Glioma <- RunPCA(object = Glioma, pc.genes = hv.genes, pcs.compute = 100, do.print = TRUE, 
               pcs.print = 1:5, genes.print = 5)
 PCElbowPlot(object = Glioma, num.pc = 100)
-PCHeatmap(Glioma, pc.use = c(1:3, 70:75), cells.use = 500, do.balanced = TRUE)
+PCHeatmap(Glioma, pc.use = c(1:3, 20:25), cells.use = 500, do.balanced = TRUE)
 Glioma <- StashIdent(object = Glioma, save.name = "cca_3.0")
-Glioma <- FindClusters(object = Glioma, reduction.type = "pca", dims.use = 1:75, resolution = 3, 
+Glioma <- FindClusters(object = Glioma, reduction.type = "pca", dims.use = 1:25, resolution = 1, 
                     save.SNN = TRUE, n.start = 10,force.recalc=T, nn.eps = 0.5, print.output = FALSE)
-Glioma <- RunTSNE(object = Glioma, reduction.use = "pca", dims.use = 1:75, tsne.method = "Rtsne", 
+Glioma <- RunTSNE(object = Glioma, reduction.use = "pca", dims.use = 1:25, tsne.method = "Rtsne", 
                nthreads = 4, reduction.name = "tsne", reduction.key = "tSNE_",do.fast = TRUE)
-
 Glioma <- StashIdent(object = Glioma, save.name = "pca_3.0")
 save(Glioma, file = "./data/Glioma_alignment.Rda")

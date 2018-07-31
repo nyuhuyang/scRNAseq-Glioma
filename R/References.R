@@ -20,7 +20,7 @@ boxplot(hpca$data)+title(main="hpca") #slow!
 boxplot(blueprint_encode$data)+title(main="blueprint_encode")#slow!
 boxplot(blueprint_encode$data[,1:100])#slow!
 
-# remove low quanlity columns
+# remove low quanlity blueprint_encode data
 par(mfrow=c(2,1))
 hist(colMeans(blueprint_encode$data),breaks=ncol(blueprint_encode$data))
 quantile_75 <- apply(blueprint_encode$data,2,function(x) quantile(x,probs =0.75))
@@ -144,17 +144,22 @@ head(gbm_expr[,1:5])
 rownames(gbm_expr) = toupper(rownames(gbm_expr))
 gbm_expr = log1p(gbm_expr)
 Median = apply(gbm_expr,2,median)
-names(Median[Median < 2])
-gbm_expr = gbm_expr[,Median > 2]
+names(Median[Median < 3])
+gbm_expr = gbm_expr[,Median > 3]
 dim(gbm_expr)
+gbm_expr = gbm_expr - 2
+gbm_expr[gbm_expr<0] = 0
+par(mfrow=c(1,2))
+boxplot(hpca_data, ylim=c(0,max(gbm_expr))) # slow
+boxplot(gbm_expr, ylim=c(0,max(gbm_expr))) # slow
+
 #allmedian <- mean(colMeans(gbm_expr)) 
 # make all reads positive-------
-gbm_expr1 = scale(gbm_expr) - min(scale(gbm_expr))
-head(gbm_expr1[,1:5])
-par(mfrow=c(1,2))
-boxplot(gbm_expr) # slow
-boxplot(gbm_expr1) # slow
-test(gbm_expr1)
+#gbm_expr1 = scale(gbm_expr) #- min(scale(gbm_expr))
+#head(gbm_expr1[,1:5])
+#par(mfrow=c(1,2))
+#boxplot(gbm_expr) # slow
+#boxplot(gbm_expr1) # slow
 
 ############################################
 # combine hpca, blueprint_encode and gbm_eset
@@ -164,7 +169,7 @@ Iname
 head(ref$data[,1:5])
 test(ref$data)
 boxplot(ref$data) # slow
-Refs_gbm <- merge(ref$data,gbm_expr1,by="row.names",all=FALSE)
+Refs_gbm <- merge(ref$data,gbm_expr,by="row.names",all=FALSE)
 dim(Refs_gbm)
 rownames(Refs_gbm) = Refs_gbm$Row.names
 Refs_gbm <- Refs_gbm[-which(colnames(Refs_gbm)=="Row.names")]
@@ -182,44 +187,18 @@ test(Refs_gbm)
 
 name = 'hpca_blueprint_encode_gbm'
 expr = as.matrix(Refs_gbm) # the expression matrix
-types = c(ref$types,as.character(gbm_eset$subtype[Median > 2])) # a character list of the types. Samples from the same type should have the same name.
+types = c(ref$types,as.character(gbm_eset$subtype[Median > 3])) # a character list of the types. Samples from the same type should have the same name.
 main_types = c(ref$main_types,
                as.character(gbm_eset$subtype[Median > 2])) # a character list of the main types. 
 Refs_gbm = list(name=name,data = expr, types=types, main_types=main_types)
+Refs_gbm <- CreateSinglerReference(name = 'hpca_blueprint_encode_gbm',
+                                     expr = as.matrix(Refs_gbm), 
+                                     types = c(ref$types,as.character(gbm_eset$subtype[Median > 3])), 
+                                     main_types = c(ref$main_types,
+                                                    as.character(gbm_eset$subtype[Median > 3])))
 
-# if using the de method, we can predefine the variable genes
-Refs_gbm$de.genes = CreateVariableGeneSet(expr,types,200)
-Refs_gbm$de.genes.main = CreateVariableGeneSet(expr,main_types,300)
-
-# if using the sd method, we need to define an sd threshold
-sd = rowSds(expr)
-sd.thres = sort(sd, decreasing = T)[4000] # or any other threshold
-Refs_gbm$sd.thres = sd.thres
-
-save(Refs_gbm,file='./data/Ref/Refs_gbm.RData') # it is best to name the object and the file with the same name.
-
-
-#---- Skip ------
-expr <- Refs_gbm
-dim(expr)
-head(expr)
-tail(colnames(expr),10)
-boxplot(expr) # optional
-expr = expr - min(expr)
-name = "gbm_VerhaakEtAl"
-types = gbm_eset$subtype
-main_types = as.character(types) # a character list of the main types. 
-Refs_gbm_VerhaakEtAl <- list(name=name,data = expr, types=types, main_types=main_types)
-# if using the de method, we can predefine the variable genes
-Refs_gbm_VerhaakEtAl$de.genes.main = CreateVariableGeneSet(expr,main_types,300)
-
-# if using the sd method, we need to define an sd threshold
-sd = rowSds(expr)
-sd.thres = sort(sd, decreasing = T)[4000] # or any other threshold
-Refs_gbm_VerhaakEtAl$sd.thres = sd.thres
-
-save(Refs_gbm_VerhaakEtAl,file='./data/GeneSets/Refs_gbm_VerhaakEtAl.RData') 
-# it is best to name the object and the file with the same name.
+Refs_gbm <-Refs_gbm1
+save(Refs_gbm,file='./data/Ref/Refs_gbm1.RData') # it is best to name the object and the file with the same name.
 
 #==== brainTxDbSets======
 data(brainTxDbSets)
