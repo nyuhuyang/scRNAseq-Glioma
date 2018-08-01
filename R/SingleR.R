@@ -8,11 +8,11 @@ source("../R/Seurat_functions.R")
 #====== 3.1 Create Singler Object  ==========================================
 lnames = load(file = "./data/Glioma_alignment.Rda")
 lnames
-lname = load(file='./data/Ref/ref_IvyGbm.RData') 
+lname = load(file='./data/Ref/Refs_Verh_IvyGbm.RData') 
 lname
-length(ref_IvyGbm$types)
-length(unique(ref_IvyGbm$types))
-length(unique(ref_IvyGbm$main_types))
+length(Refs_Verh_IvyGbm$types)
+length(unique(Refs_Verh_IvyGbm$types))
+length(unique(Refs_Verh_IvyGbm$main_types))
 #cca
 DimPlot(object = Glioma, reduction.use = "tsne", no.legend = TRUE,
         do.return = TRUE,vector.friendly = F, pt.size = 1,
@@ -23,7 +23,7 @@ singler = CreateSinglerObject(as.matrix(Glioma@data), annot = Glioma@ident,
                                  project.name=Glioma@project.name,
                               do.main.types = T,
                               min.genes = 500,technology = "10X", species = "Human", 
-                              citation = "",ref.list = list(ref_IvyGbm), 
+                              citation = "",ref.list = list(Refs_Verh_IvyGbm), 
                               normalize.gene.length = F,
                               variable.genes = "de",
                               fine.tune = F, do.signatures = F, clusters = NULL) # run in cluster
@@ -31,13 +31,13 @@ singler = CreateSinglerObject(as.matrix(Glioma@data), annot = Glioma@ident,
 singler$meta.data$orig.ident = Glioma@meta.data$orig.ident # the original identities, if not supplied in 'annot'
 singler$meta.data$xy = Glioma@dr$tsne@cell.embeddings # the tSNE coordinates
 singler$meta.data$clusters = Glioma@ident # the Seurat clusters (if 'clusters' not provided)
-save(singler,file="./data/singler_IvyGbm.RData")
-#save(singler,file="./data/singler_Refs_gbm1.RData")
+save(singler,file="./data/singler_Verh_IvyGbm.RData")
+#save(singler,file="./data/singler_Refs_Verh_IvyGbm1.RData")
 #save(singler,file="./data/singler_Glioma.RData")
 
 #====== 3.2 SingleR specifications ==========================================
 # Step 1: Spearman coefficient
-lnames = load(file = "./data/singler_Refs_gbm1.RData")
+lnames = load(file = "./data/singler_Refs_Verh_IvyGbm.RData")
 lnames
 singler$seurat = Glioma # (optional)
 
@@ -56,7 +56,7 @@ SingleR.DrawScatter(sc_data = singler$seurat@data,cell_id = 10,
 # In the examples below we use the 80% percentile of correlation values.
 # for visualization purposes we only present a subset of cell types (defined in labels.use)
 out = SingleR.DrawBoxPlot(sc_data = singler$seurat@data,cell_id = 10, 
-                          ref = Refs_gbm,main_types = T,
+                          ref = Refs_Verh_IvyGbm,main_types = T,
                           labels.use=c('Astrocyte','Fibroblasts',
                                        'Myocytes','Mesangial_cells','Neuroepithelial_cells:ESC-derived'))
 print(out$plot)
@@ -65,7 +65,7 @@ SingleR.DrawHeatmap(singler$singler[[1]]$SingleR.single.main, top.n = Inf,
 #Or by all cell types (showing the top 50 cell types):
 SingleR.DrawHeatmap(singler$singler[[1]]$SingleR.single, top.n = 50,
                     clusters = singler$meta.data$orig.ident)
-SingleR.DrawHeatmap(singler$singler[[1]]$SingleR.single.main,top.n = 50,
+SingleR.DrawHeatmap(singler$singler[[1]]$SingleR.single.main,top.n = 60,
                     normalize = F,clusters = singler$meta.data$orig.ident)
 #Next, we can use the fine-tuned labels to color the t-SNE plot:
 # types-------
@@ -74,7 +74,7 @@ out = SingleR.PlotTsne.1(singler$singler[[1]]$SingleR.single,
                          do.letters = F,labels = singler$singler[[1]]$SingleR.single$labels,
                          label.size = 5, dot.size = 1,do.legend = F,alpha = 1,
                          label.repel = T,force=2)
-out$p+  ggtitle("Supervised cell type labeling by HPCA, Blueprint, Encode and gbm_VerhaakEtAl")+#ggplot title
+out$p+  ggtitle("Sub cell type supervised labeling by HPCA, Blueprint, Encode, Verhaak and Ivy")+#ggplot title
         theme(text = element_text(size=20),     #larger text including legend title
               plot.title = element_text(hjust = 0.5,size = 18, face = "bold")) #title in middle
 # main types-------
@@ -83,7 +83,7 @@ out = SingleR.PlotTsne.1(singler$singler[[1]]$SingleR.single.main,
                          do.letters = F,labels = singler$singler[[1]]$SingleR.single.main$labels,
                          label.size = 5, dot.size = 1,do.legend = F,alpha = 1,
                          label.repel = T,force=2)
-out$p+  ggtitle("Supervised main cell type labeling by HPCA, Blueprint, Encode and gbm_VerhaakEtAl")+#ggplot title
+out$p+  ggtitle("Major cell type supervised labeling by HPCA, Blueprint, Encode, Verhaak and Ivy")+#ggplot title
         theme(text = element_text(size=20),     #larger text including legend title
               plot.title = element_text(hjust = 0.5,size = 18, face = "bold")) #title in middle
 

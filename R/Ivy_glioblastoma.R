@@ -4,6 +4,7 @@
 library(SingleR)
 library(genefilter)
 library(plyr)
+library(dplyr)
 source("../R/Seurat_functions.R")
 #====== load Ivy_glioblastoma data  ==========================================
 Ivy_gbm <- read.csv(file = "./data/Ref/gene_expression_matrix_2014-11-25/fpkm_table.csv",header = T)
@@ -22,9 +23,9 @@ Ivy_gbm <- Ivy_gbm[-which(colnames(Ivy_gbm)=="gene_id.rna_well_id")]
 head(Ivy_gbm[,1:5])
 dim(Ivy_gbm)
 boxplot(Ivy_gbm) # slow
-test(Ivy_gbm)
+testMMM(Ivy_gbm)
 Ivy_gbm_log <- log1p(Ivy_gbm)
-test(Ivy_gbm_log)
+testMMM(Ivy_gbm_log)
 boxplot(Ivy_gbm_log) # slow
 
 # read columns-samples
@@ -34,30 +35,28 @@ columns_samples$rna_well_id = paste0("X",columns_samples$rna_well_id)
 head(columns_samples[,1:10])
 table(columns_samples$rna_well_id == colnames(Ivy_gbm_log))
 
+# read columns-samples
+rna_seq_samples <- read.csv(file = "./data/Ref/gene_expression_matrix_2014-11-25/rna_seq_samples_details.csv",
+                            header = T)
+# duplicated rows with merge by tumor_id, because there are duplicated tumor_id
+apply(columns_samples,2,function(x) table(duplicated(x)))
+apply(rna_seq_samples,2,function(x) table(duplicated(x)))
+colnames(rna_seq_samples)[colnames(rna_seq_samples)=="sample_id"] = "rna_well_id"
+rna_seq_samples$rna_well_id = paste0("X",rna_seq_samples$rna_well_id)
+columns_rna_seq <- merge(columns_samples,rna_seq_samples, by = "rna_well_id")
+dim(columns_rna_seq)
+columns_rna_seq = columns_rna_seq[,c("rna_well_id","molecular_subtype")]
+columns_rna_seq$molecular_subtype = as.character(columns_rna_seq$molecular_subtype)
+#strsplit(columns_rna_seq$molecular_subtype, ", ")
+#columns_rna_seq$main_types <- sapply(columns_rna_seq$molecular_subtype,
+#                                     function(row) strsplit(row,", ")[[1]][1])
+#columns_rna_seq$types <- gsub(", ", "_",columns_rna_seq$molecular_subtype)
+types = columns_rna_seq[match(colnames(Ivy_gbm_log),columns_rna_seq$rna_well_id),"molecular_subtype"]
+main_types = columns_rna_seq[match(colnames(Ivy_gbm_log),columns_rna_seq$rna_well_id),"molecular_subtype"]
 #======== Create reference=====
-CreateSinglerReference <- function(name,expr,types,main_types){
-        name=name
-        data = expr # the expression matrix
-        types=types # a character list of the types. Samples from the same type should have the same name.
-        main_types=main_types # a character list of the main types. 
-        ref = list(name=name,data = expr, types=types, main_types=main_types)
-        
-        # if using the de method, we can predefine the variable genes
-        ref$de.genes = CreateVariableGeneSet(expr,types,200)
-        ref$de.genes.main = CreateVariableGeneSet(expr,main_types,300)
-        
-        # if using the sd method, we need to define an sd threshold
-        sd = rowSds(expr)
-        sd.thres = sort(sd, decreasing = T)[4000] # or any other threshold
-        ref$sd.thres = sd.thres
-        
-        return(ref)
-        
-}
-
 ref_IvyGbm <- CreateSinglerReference(name = 'Ivy_glioblastoma',
                               expr = as.matrix(Ivy_gbm_log), 
-                              types = as.character(columns_samples$structure_abbreviation), 
-                              main_types = as.character(columns_samples$structure_abbreviation))
+                              types = paste0(types,"_IvyGbm"), 
+                              main_types = paste0(main_types,"_IvyGbm"))
 
 save(ref_IvyGbm,file='./data/Ref/ref_IvyGbm.RData') 

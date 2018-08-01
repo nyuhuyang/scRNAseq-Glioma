@@ -32,24 +32,11 @@ par(mfrow=c(1,1))
 boxplot(blueprint_encode_rm)#slow!
 title(main="blueprint_encode_rm")
 
-# adjest median
-test <- function(x) {
-        par(mfrow=c(3,1))
-        Max <- apply(x,2,max)
-        Median <- apply(x,2,median)
-        Min <- apply(x,2,min)
-        xlim = c(min(x),max(x))
-        hist(Max, xlim = xlim)
-        hist(Median, xlim = xlim)
-        hist(Min, xlim = xlim)
-        par(mfrow=c(1,1))
-}
-
 #hpca_median <- mean(apply(hpca$data,2,median))
 # make all reads positive-------
 hpca_data <- scale(hpca$data) - min(scale(hpca$data)) 
-test(hpca$data)
-test(hpca_data)
+testMMM(hpca$data)
+testMMM(hpca_data)
 boxplot(hpca_data) #slow!
 
 #blue_encode_median <- mean(apply(blueprint_encode_rm,2,median))
@@ -60,8 +47,8 @@ blue_encode_data <- scale(blueprint_encode_rm) - min(scale(blueprint_encode_rm))
 #blue_encode_data <- sweep(blue_encode_data,
 #                          2, blue_encode_min) # by column
 #min(blue_encode_data)
-test(scale(blueprint_encode_rm))
-test(blue_encode_data)
+testMMM(scale(blueprint_encode_rm))
+testMMM(blue_encode_data)
 boxplot(blue_encode_data) #slow!
 
 # merge
@@ -131,12 +118,12 @@ data(gbm_VerhaakEtAl)
 #------View data------
 gbm_eset
 head(featureNames(gbm_eset))
-gbm_eset$subtype = paste0(gbm_eset$subtype,"_Glioblastoma")
+gbm_eset$subtype = paste0(gbm_eset$subtype,"_VerhaakGbm")
 table(gbm_eset$subtype)
 gbm_expr <- exprs(gbm_eset)
 dim(gbm_expr)
 head(gbm_expr[,1:5])
-test(gbm_expr)
+testMMM(gbm_expr)
 
 #TPM
 gbm_expr = TPM(exp(exprs(gbm_eset)), human_lengths)
@@ -167,43 +154,50 @@ boxplot(gbm_expr, ylim=c(0,max(gbm_expr))) # slow
 Iname <- load(file='../SingleR/data/ref.RData')
 Iname
 head(ref$data[,1:5])
-test(ref$data)
+testMMM(ref$data)
 boxplot(ref$data) # slow
-Refs_gbm <- merge(ref$data,gbm_expr,by="row.names",all=FALSE)
-dim(Refs_gbm)
-rownames(Refs_gbm) = Refs_gbm$Row.names
-Refs_gbm <- Refs_gbm[-which(colnames(Refs_gbm)=="Row.names")]
-head(Refs_gbm[,1:5])
-dim(Refs_gbm)
+refs_gbm <- merge(ref$data,gbm_expr,by="row.names",all=FALSE)
+dim(refs_gbm)
+rownames(refs_gbm) = refs_gbm$Row.names
+refs_gbm <- refs_gbm[-which(colnames(refs_gbm)=="Row.names")]
+head(refs_gbm[,1:5])
+dim(refs_gbm)
 ncol(ref$data)+ncol(gbm_expr)
 
 # scale
-#allmean <- mean(apply(Refs_gbm,2,median))
-#Refs_gbm <- scale(Refs_gbm)
-#Refs_gbm <- Refs_gbm +allmean
+#allmean <- mean(apply(refs_gbm,2,median))
+#refs_gbm <- scale(refs_gbm)
+#refs_gbm <- refs_gbm +allmean
 
-boxplot(Refs_gbm)
-test(Refs_gbm)
+boxplot(refs_gbm)
+testMMM(refs_gbm)
 
-name = 'hpca_blueprint_encode_gbm'
-expr = as.matrix(Refs_gbm) # the expression matrix
-types = c(ref$types,as.character(gbm_eset$subtype[Median > 3])) # a character list of the types. Samples from the same type should have the same name.
-main_types = c(ref$main_types,
-               as.character(gbm_eset$subtype[Median > 2])) # a character list of the main types. 
-Refs_gbm = list(name=name,data = expr, types=types, main_types=main_types)
 Refs_gbm <- CreateSinglerReference(name = 'hpca_blueprint_encode_gbm',
-                                     expr = as.matrix(Refs_gbm), 
+                                     expr = as.matrix(refs_gbm), 
                                      types = c(ref$types,as.character(gbm_eset$subtype[Median > 3])), 
                                      main_types = c(ref$main_types,
                                                     as.character(gbm_eset$subtype[Median > 3])))
-
-Refs_gbm <-Refs_gbm1
 save(Refs_gbm,file='./data/Ref/Refs_gbm1.RData') # it is best to name the object and the file with the same name.
 
-#==== brainTxDbSets======
-data(brainTxDbSets)
-brainTxDbSets
-sapply(brainTxDbSets, length)
-
-lapply(brainTxDbSets, head)
-gbm_es <- gsva(gbm_eset, brainTxDbSets, mx.diff=FALSE, verbose=FALSE, parallel.sz=1)
+############################################
+# combine hpca, blueprint_encode, gbm_eset and IvyGbm
+############################################
+lname1 <- load(file='./data/Ref/Refs_gbm1.RData');lname1
+Iname2 <- load(file='./data/Ref/ref_IvyGbm.RData');Iname2
+testMMM(Refs_gbm$data)
+testMMM(ref_IvyGbm$data)
+boxplot(ref_IvyGbm$data) # slow
+head(ref_IvyGbm$data[,1:5])
+refs_Verh_IvyGbm <- merge(Refs_gbm$data,ref_IvyGbm$data,by="row.names",all=FALSE)
+dim(refs_Verh_IvyGbm)
+rownames(refs_Verh_IvyGbm) = refs_Verh_IvyGbm$Row.names
+refs_Verh_IvyGbm <- refs_Verh_IvyGbm[-which(colnames(refs_Verh_IvyGbm)=="Row.names")]
+head(refs_Verh_IvyGbm[,1:5])
+par(mfrow = c(1,1))
+boxplot(refs_Verh_IvyGbm)+title(main="merge hpca blueprint encode Verhaak IvyGbm") #slow!
+Refs_Verh_IvyGbm <- CreateSinglerReference(name = 'hpca_blueprint_encode_Verhaak_Ivy',
+                                   expr = as.matrix(refs_Verh_IvyGbm), 
+                                   types = c(Refs_gbm$types,ref_IvyGbm$types), 
+                                   main_types = c(Refs_gbm$main_types,ref_IvyGbm$main_types),
+                                   de.num = 200,de.main.num = 300)
+save(Refs_Verh_IvyGbm,file='./data/Ref/Refs_Verh_IvyGbm.RData') # it is best to name the object and the file with the same name.
