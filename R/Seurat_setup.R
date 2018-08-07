@@ -132,14 +132,16 @@ Glioma <- FindClusters(object = Glioma, reduction.type = "cca.aligned", dims.use
 Glioma <- RunTSNE(object = Glioma, reduction.use = "cca.aligned", dims.use = 1:20, 
                       do.fast = TRUE)
 
-p1 <- TSNEPlot(Glioma, do.return = T, pt.size = 1, no.legend = TRUE,
+p1 <- TSNEPlot(Glioma, do.return = T, pt.size = 1, no.legend = F,
                do.label = TRUE,group.by = "orig.ident",label.size = 6) + 
-        ggtitle("Samples") + 
-        theme(plot.title = element_text(hjust = 0.5))
+        ggtitle("tSNE plot for all three samples") + 
+        theme(text = element_text(size=20),
+              plot.title = element_text(hjust = 0.5))
 p2 <- TSNEPlot(Glioma, do.return = T, pt.size = 1, no.legend = TRUE,
                do.label = TRUE, group.by = "ident",label.size = 8) + 
         ggtitle("Cluster ID") + 
-        theme(plot.title = element_text(hjust = 0.5))
+        theme(text = element_text(size=20),
+              plot.title = element_text(hjust = 0.5))
 #png('./output/TSNESplot_alignment.png')
 plot_grid(p1, p2)
 #dev.off()

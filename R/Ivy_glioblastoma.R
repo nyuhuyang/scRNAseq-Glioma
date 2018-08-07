@@ -7,12 +7,12 @@ library(plyr)
 library(dplyr)
 source("../R/Seurat_functions.R")
 #====== load Ivy_glioblastoma data  ==========================================
-Ivy_gbm <- read.csv(file = "./data/Ref/gene_expression_matrix_2014-11-25/fpkm_table.csv",header = T)
+Ivy_gbm <- read.csv(file = "./data/GeneSets/gene_expression_matrix_2014-11-25/fpkm_table.csv",header = T)
 dim(Ivy_gbm)
 head(Ivy_gbm[,1:5])
 
 # Convert gene id, log transfer
-rows_genes <- read.csv(file = "./data/Ref/gene_expression_matrix_2014-11-25/rows-genes.csv")
+rows_genes <- read.csv(file = "./data/GeneSets/gene_expression_matrix_2014-11-25/rows-genes.csv")
 head(rows_genes)
 Ivy_gbm$gene_id.rna_well_id <- plyr::mapvalues(x = Ivy_gbm$gene_id.rna_well_id,
                                 from = rows_genes$gene_id,
@@ -29,14 +29,14 @@ testMMM(Ivy_gbm_log)
 boxplot(Ivy_gbm_log) # slow
 
 # read columns-samples
-columns_samples <- read.csv(file = "./data/Ref/gene_expression_matrix_2014-11-25/columns-samples.csv",
+columns_samples <- read.csv(file = "./data/GeneSets/gene_expression_matrix_2014-11-25/columns-samples.csv",
                             header = T)
 columns_samples$rna_well_id = paste0("X",columns_samples$rna_well_id)
 head(columns_samples[,1:10])
 table(columns_samples$rna_well_id == colnames(Ivy_gbm_log))
 
 # read columns-samples
-rna_seq_samples <- read.csv(file = "./data/Ref/gene_expression_matrix_2014-11-25/rna_seq_samples_details.csv",
+rna_seq_samples <- read.csv(file = "./data/GeneSets/gene_expression_matrix_2014-11-25/rna_seq_samples_details.csv",
                             header = T)
 # duplicated rows with merge by tumor_id, because there are duplicated tumor_id
 apply(columns_samples,2,function(x) table(duplicated(x)))
@@ -54,9 +54,9 @@ columns_rna_seq$molecular_subtype = as.character(columns_rna_seq$molecular_subty
 types = columns_rna_seq[match(colnames(Ivy_gbm_log),columns_rna_seq$rna_well_id),"molecular_subtype"]
 main_types = columns_rna_seq[match(colnames(Ivy_gbm_log),columns_rna_seq$rna_well_id),"molecular_subtype"]
 #======== Create reference=====
-ref_IvyGbm <- CreateSinglerReference(name = 'Ivy_glioblastoma',
+Ivy_Glioblastoma <- CreateSinglerReference(name = 'Ivy_Glioblastoma',
                               expr = as.matrix(Ivy_gbm_log), 
-                              types = paste0(types,"_IvyGbm"), 
-                              main_types = paste0(main_types,"_IvyGbm"))
+                              types = paste0(types,"_Ivy.Glioblastoma"), 
+                              main_types = paste0(main_types,"_Ivy.Glioblastoma"))
 
-save(ref_IvyGbm,file='./data/Ref/ref_IvyGbm.RData') 
+save(Ivy_Glioblastoma,file='./data/GeneSets/Ivy_Glioblastoma.RData') 

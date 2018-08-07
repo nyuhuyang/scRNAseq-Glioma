@@ -1,6 +1,6 @@
 library(Seurat)
 library(dplyr)
-source("./R/Seurat_functions.R")
+source("../R/Seurat_functions.R")
 
 #====== 2.1 identify phenotype for each cluster  ==========================================
 lnames = load(file = "./data/Glioma_alignment.Rda")
@@ -138,362 +138,136 @@ Fibroblast <- HumanGenes(Glioma,c("FGF1","FGF9","SFRP1"))
 Epithelium <- HumanGenes(Glioma,c("Epcam","KRT19","KRT5",
                                   "MUC1","SCGB3A2","SCGB1A1","SCGB3A1","SFTPB","FOXJ1","Rpe65",
                                   "Rlbp1","Msln","Upk3b","Lrrn4"))
-# undifferentiated spermatogonia
-uGlioma_As_only <- HumanGenes(Glioma,c("ID4","PAX7","BMI1","EOMES","GFRA1","FGFR3"))# As undifferentiated spermatogonia only
-uGlioma_As_pr_al4 <- HumanGenes(Glioma,c("NANOS2","UTF1","ZBTB16","SALL4","LIN28A",
-                                     "FOXO1","DPPA4","UCHL1","UTF1"),unique = T)# expression  As, Apr and Aal4
-uGlioma <- unique(c(uGlioma_As_only,uGlioma_As_pr_al4))
-u_di_Glioma <- HumanGenes(Glioma,c("NEUROG3","NANOS3","SOHLH1","MAGEA4","KIT","CD9"),unique = T) # un/differentiated
-other_Glioma <- HumanGenes(Glioma,c("EXOSC10","SLC22A2","DMRT1","MKI67", "SSX2B","SSX3","SSX4",
-                                "ITGA6","NANOG","CD9", "EpCAM","ADGRA3","GDNF","ITGB1","Ret","HLA-A",
-                                "DDX4","DAZL","STRA8","CD24A","Nanos3","EGR3","FHL1","SOX3",
-                                "TAF4B","Bcl6b","Numb","Lrp4","SOHLH2","CDH1","GNL3","UTF1","CST3","Vim",
-                                "CENPB","NGN3","PRDX5","LRRC6","Rps27a"),unique = T) 
-Spermatocyte <- HumanGenes(Glioma,c("KHDRBS1","SPAG16","CATSPER2","SLC25A31","SPAG6"))
-spermatozoids <- HumanGenes(Glioma,c("THY1","STRC","DEL15Q15.3","DAZ1","DAZ2","DAZ3","DAZ3"))
-defective_spermatozoa <- HumanGenes(Glioma,c("TXNDC8","TXNDC2","ALOX15","NME8")) #TXNDC8(SPTRX3), ALOX15(15-LOX)
+# Glioma
+SingleFeaturePlotSave <- function(object = object, feature.plot, 
+                                  folder.name=NULL,mkdir=FALSE,
+                                  threshold = 0.1){
+        if(mkdir) {
+                if(is.null(folder.name)) {
+                        folder.name = deparse(substitute(feature.plot))
+                }
+                icesTAF::mkdir(paste0("./output/tsne/",folder.name))
+        } 
+        for (i in 1:length(feature.plot)) {
+                temp_plot = SingleFeaturePlot.1(object = object, 
+                                                feature = feature.plot[i],
+                                                threshold=threshold)
+                ggsave(temp_plot, file=paste0("./output/tsne/",folder.name,
+                                              "/",feature.plot[i],".jpeg"),
+                       width = 35.28, height = 24.69, units = "cm"
+                )
+        }
+}
+# "Single-cell RNA-seq supports a developmental hierarchy in human oligodendroglioma" nature20123
+IDH_oligodendroglioma <- HumanGenes(Glioma,c("OLIG2", "OMG"))
+IDH_astrocytoma <- HumanGenes(Glioma,c("APOE", "ALDOC", "SOX9", "GFAP"))
+stemness <- HumanGenes(Glioma,c("SOX4","SOX11", "SOX2","CCND2"))
+cell_proliferation <- HumanGenes(Glioma,c("MKI67"))
+glioma_CSCs <- HumanGenes(Glioma,c("NFIB", "ASCL1", "CHD7", "CD24", "BOC", "TCF4"))
+nature20123 <- c(IDH_oligodendroglioma,IDH_astrocytoma,stemness,cell_proliferation, glioma_CSCs)
 
-# featureplot
-featureplot(Housekeeping)
-featureplot(Embryonic_SCs)
-featureplot(Adipocytes) # Adipocytes
-featureplot(Endothelium) # Endothelial Cells
-featureplot(Epithelium) # Epithelium
-featureplot(c(RPE,Melanocytes,Myelinating_Schwann_cells)) # RPE, Melanocytes, Myelinating Schwann cells
-featureplot(Fibroblast) # Fibroblasts
+SingleFeaturePlotSave(object = Glioma, feature.plot = nature20123,mkdir=T)
 
-#==================
-featureplot(Hematopoietic) # Hematopoietic cells
-featureplot(Myeloid[1:9]) # Myeloid cells
-featureplot(Myeloid[10:18]) # Myeloid cells
-featureplot(erythrocyte)
-featureplot(MastCells)
-featureplot(Neutrophil)
-featureplot(c(CD14_Monocytes,CD16_Monocytes[]))
-featureplot(Macrophages)
-featureplot(DendriticCells)
-featureplot(interferon)
-#=====================
-featureplot(Lymphoid) # Lymphoid cells
-featureplot(NK)
-# T cell
-featureplot(c(T_Cell[1:6],Natural_killer_T))
-featureplot(Treg)
-featureplot(CD4_Naive_T)
-featureplot(c(Regulatory_T,Natural_killer_T))
-# B cell
-featureplot(B_Cell)
-featureplot(unique(c(B_StemCell,
-                     Pre_Pro_B,
-                     Pro_B,
-                     Pre_B)))
-featureplot(unique(c(Immature_B,
-                     Transitional_B)))
-featureplot(Marginal_zone_B)
-featureplot(unique(c(Regulatory_B,
-                     Activated_B)))
-featureplot(Follicular_B)
-featureplot(Germinal_center_B)
-featureplot(unique(c(Plasma_blast,
-                     Plasma_cell_long_lived,
-                     Memory_B)))
+# "Single-cell RNA-seq highlights intratumoral heterogeneity in primary glioblastoma" science.1254257
+MGH30 <- HumanGenes(Glioma,c("EGFR", "PDGFRA", "PDGFA","FGFR1", "FGF1", "NOTCH2", "JAG1"))
+quiescence <- HumanGenes(Glioma,c("HES1", "TSC22D1", "KDM5B","NFIB"))
+stem_cell <- HumanGenes(Glioma,c("PROM1"))
+tumor_propagation <- HumanGenes(Glioma,c("POU3F2"))
+neural_stem_cells_self_renewal <- HumanGenes(Glioma,c("NFIA"))
+science.1254257 <- c(MGH30,quiescence,stem_cell,tumor_propagation,neural_stem_cells_self_renewal)
 
-featureplot(Mesenchymal) # Mesenchymal cells
-featureplot(Pericytes) # Pericytes
-featureplot(Smooth_muscle_cells)
-featureplot(Stem_cell)
-featureplot(Stromal_fibroblasts)
-featureplot(Neurons)
+SingleFeaturePlotSave(object = Glioma, feature.plot = science.1254257,mkdir=T)
 
-#  test FindAllMarkers=============
-AllMarkers <- FindAllMarkers.UMI(Glioma, logfc.threshold = 0.25,
-                                 min.pct = 0.25,only.pos = T)
-write.csv(AllMarkers,"./output/AllMarkers.csv")
-AllMarkers <- readr::read_csv("./output/AllMarkers.csv")
+# "Decoupling genetics, lineages, and microenvironment in IDH-mutant gliomas by single-cell RNA-seq" science.aai8478
+IDH_O <- HumanGenes(Glioma,c("OLIG2","TERT"))
+IDH_A <- HumanGenes(Glioma,c("TP53","ATRX","GFAP"))
+Microglia_macrophage <- HumanGenes(Glioma,c("CD14", "AIF1", "CSF1R"))
+Oligodendrocytes <-  HumanGenes(Glioma,c("MBP", "MOBP", "PLLP", "CLDN11"))
+neuro_developmental_TF= HumanGenes(Glioma,c("SOX4","SOX11", "TCF4"))
+Microglia_like <- HumanGenes(Glioma,c("CX3CR1","P2RY12","P2RY13","SELPLG"))
+Macrophage_like<- HumanGenes(Glioma,c("CD14","CD163","IFITM2","IFITM3","TAGLN2",
+                                      "F13A1","TGFBI","IFNGR1"))
 
-MarkerList <- list("Embryonic Stem Cells"=Embryonic_SCs,
-                   "Ectoderm"=Ectoderm,
-                   "Mesoderm"=Mesoderm,
-                   "Endoderm"=Endoderm,
-                   "lineage Cells"=lineage_Cells,
-                   "Mesencyhmal stem cell"=MSC,
-                   "Hematopoietic stem cell"=HSC,
-                   "Collagen"=Collagen,
-                   "Endothelium"=Endothelium,
-                   "Smooth muscle cells"=Smooth_muscle_cells,
-                   "Osteoblast"=Osteoblast,
-                   "Adipocytes"=Adipocytes,
-                   "Fat stem cell"=Fat_stem_cell,
-                   #"Hepatocyte"=Hepatocyte,
-                   "Epithelium"=Epithelium,
-                   "Fibroblast"=Fibroblast,
-                   "Mesenchymal cells"=Mesenchymal,
-                   "Hematopoietic cells"=Hematopoietic,
-                   #"Myeloid"=Myeloid_all,
-                   #"Lymphoid"=Lymphoid,
-                   #"T_Cell"=T_Cell_all,
-                   #"B_Cell"=B_Cell_all,
-                   "Pericytes"=Pericytes,
-                   #"CellCycle"=CellCycle,
-                   "undifferentiated spermatogonia"=uGlioma,
-                   "un_differentiated spermatogonia"=u_di_Glioma,
-                   "Glioma related"=other_Glioma,
-                   "Spermatocyte"=Spermatocyte,
-                   "defective spermatozoa"=defective_spermatozoa
-)
-df_Markers <- Marker2Types(MarkerList)
-df_Markers <- inner_join(df_Markers,AllMarkers, by="gene")
-df_Markers <- df_Markers[,!(colnames(df_Markers) %in% c("X1","pct.1","pct.2"))]
-df_Markers <- df_Markers %>% select("cluster", everything())
-df_Markers <- df_Markers[order(df_Markers$cluster),]
-write.csv(df_Markers,"./output/Markers_CellTypes.csv")
-# Featureplot=======================================
-# create list of markers by "Cell_Type"
-List <- Types2Markers(df_Markers)
-names(List)
-Featureplot("THY1")
-Featureplot(c(List$defective_spermatozoa,"Rps27a"))
-FeaturePlot(Glioma, "Txndc8",do.hover=T)
-
-Abnormal_sperm <- df_Markers$Cell_Type=="defective spermatozoa" & df_Markers$gene=="Txndc8"
-Abnormal_sperm <- unique(df_Markers[Abnormal_sperm,"cluster"])
-Abnormal_sperm
-Abnormal_sperm <- SubsetData(Glioma,ident.use = Abnormal_sperm)
-Abnormal_sperm_cells <- as.data.frame(table(Abnormal_sperm@meta.data$orig.ident))
-All_cells <- as.data.frame(table(Glioma@meta.data$orig.ident))
-Abnormal_sperm_cells$total <- All_cells$Freq
-Abnormal_sperm_cells$percentage <- Abnormal_sperm_cells$Freq/Abnormal_sperm_cells$total
-Abnormal_sperm_cells
-
-Featureplot(c(List$Spermatocyte))
-Featureplot(c("Khdrbs1","Txndc8","Spag16","Spag6"))
-Normal_sperm <- df_Markers$Cell_Type=="Spermatocyte" & df_Markers$gene=="Spag16"
-Normal_sperm <- unique(df_Markers[Normal_sperm,"cluster"])
-Normal_sperm <- Normal_sperm[!(Normal_sperm %in% c(19,26,28))] # remove 19,26,28
-Normal_sperm <- unique(c(Normal_sperm,9,12))
-Normal_sperm
-Normal_sperm_cells <- SubsetData(Glioma,ident.use = Normal_sperm)
-Normal_sperm_cells <- as.data.frame(table(Normal_sperm_cells@meta.data$orig.ident))
-All_cells <- as.data.frame(table(Glioma@meta.data$orig.ident))
-Normal_sperm_cells$total <- All_cells$Freq
-Normal_sperm_cells$percentage <- Normal_sperm_cells$Freq/Normal_sperm_cells$total
-Normal_sperm_cells
-
-WBS <- df_Markers$Cell_Type=="Hematopoietic cells"
-WBS <- unique(df_Markers[WBS,"cluster"])
-WBS <- WBS[!(WBS %in% Abnormal_sperm)]
-WBS
-Collagens <- df_Markers$Cell_Type=="Collagen" & df_Markers$gene=="Col1a1"
-Collagens <- unique(df_Markers[Collagens,"cluster"])
-Collagens <- Collagens[!(Collagens %in% WBS)]
-Collagens
-
-WBS <- df_Markers$Cell_Type=="Hematopoietic cells"
-WBS <- unique(df_Markers[WBS,"cluster"])
-WBS <- WBS[!(WBS %in% Abnormal_sperm)]
-not_SCs <- sort(unique(c(Abnormal_sperm,Normal_sperm,Collagen,WBS)))
-SCs <- SubsetData(Glioma,ident.remove = not_SCs)
-
-p1 <- SingleFeaturePlot.1(object = Glioma, feature="Txndc8")
-p2 <- SingleFeaturePlot.1(object = SCs, feature="Txndc8")
-p3 <- SingleFeaturePlot.1(object = Glioma, feature="Spag16")
-p4 <- SingleFeaturePlot.1(object = SCs, feature="Spag16")
-p5 <- SingleFeaturePlot.1(object = Glioma, feature="Col1a2")
-p6 <- SingleFeaturePlot.1(object = SCs, feature="Col1a2")
-p7 <- SingleFeaturePlot.1(object = Glioma, feature="Laptm5")
-p8 <- SingleFeaturePlot.1(object = SCs, feature="Laptm5")
-plot_grid(p1, p2, p3, p4,p5,p6,p7,p8,ncol = 2)
-
-p1 <- SingleFeaturePlot.1(object = Glioma, feature="Gfra1")
-p2 <- SingleFeaturePlot.1(object = SCs, feature="Gfra1")
-p3 <- SingleFeaturePlot.1(object = Glioma, feature="Dmrt1")
-p4 <- SingleFeaturePlot.1(object = SCs, feature="Dmrt1")
-plot_grid(p1, p2, p3, p4,ncol = 2)
+science.aai8478 <- unique(c(IDH_O,IDH_A,Microglia_macrophage,Oligodendrocytes,
+                            neuro_developmental_TF,Microglia_like,Macrophage_like))
+SingleFeaturePlotSave(object = Glioma, feature.plot = science.aai8478)
+#############
 
 
-Featureplot(uGlioma_As_only,object = not_SCs)
-Featureplot(c(List$Adipocytes,List$Fat_stem_cell))
+Refs_TCGA_IvyGbm_main = read.csv("./output/Refs_TCGA_IvyGbm_main.csv",header = T,row.names = 1)
 
-Featureplot(c(List$Embryonic_Stem_Cells,List$Ectoderm,List$Endoderm)[c(1,5:7)])
-Featureplot(unique(c(List$Collagen, List$Smooth_muscle_cells,List$Pericytes)))
-Featureplot(c(List$Epithelium,List$Fibroblast))
-Featureplot(c(List$Spermatocyte))
-Featureplot("Thy1")
-Featureplot(List$Hematopoietic_cells)
-Featureplot(List$Hematopoietic_stem_cell)
-Featureplot(c(List$undifferentiated_spermatogonia,"Pax7","Eomes"))
-Featureplot(List$un_differentiated_spermatogonia)
-others <- List$Glioma_related[!(List$Glioma_related %in% c(List$undifferentiated_spermatogonia,
-                                   List$un_differentiated_spermatogonia))]
-Featureplot(others[1:9])
-Featureplot(others[10:18])
-Featureplot(spermatozoids)
+SearchMarker <- function(df, marker){
+        result = apply(df, 2, function(x) which(grepl(marker, x)))
+        result_df = data.frame(sort(unlist(result)))
+        colnames(result_df) = marker
+        return(result_df)
+        }
 
-#====== 2.2 dot Plots ==========================================
-markers.to.plot <- c(Hematopoietic[c(2,1,3)],Spermatocyte[c(2,3)],
-                     Collagen[-1],defective_spermatozoa[-3],
-                     Spermatocyte[c(5,2,3)],"Dmrt1","Pou5f1",uGlioma[c(5,9:14)],
-                     "Vim","Itgb1","Gata4","Adgra3","Fhl1", "Itga6","NANOG","SOX2")
-markers.to.plot <- HumanGenes(Glioma,markers.to.plot,unique=T)
-# Rename ident
-table(Glioma@ident)
-idents <- as.data.frame(table(Glioma@ident))
-old.ident.ids <- idents$Var1
-new.cluster.ids <- c("Other stem cells 0",
-                     "Spermatogonial stem cells 1",
-                     "Spermatogonial stem cells 2",
-                     "Defective sperm 3",
-                     "Collagen 4",
-                     "Spermatocyte 5",
-                     "Spermatocyte 6",
-                     "Spermatocyte 7",
-                     "Defective sperm 8",
-                     "Spermatocyte 9",
-                     "Defective sperm 10",
-                     "Spermatogonial stem cells 11",
-                     "Spermatocyte 12",
-                     "Spermatocyte 13",
-                     "Defective sperm 14",
-                     "Spermatocyte 15",
-                     "Spermatocyte 16",
-                     "Other stem cells 17",
-                     "Defective sperm 18",
-                     "Defective sperm 19",
-                     "unknown 20",
-                     "Spermatocyte 21",
-                     "Defective sperm 22",
-                     "Spermatocyte 23",
-                     "White blood cells 24",
-                     "Other stem cells 25",
-                     "Defective sperm 26",
-                     "Other stem cells 27",
-                     "Defective sperm 28",
-                     "White blood cells 29",
-                     "Spermatogonial stem cells 30",
-                     "Defective sperm 31",
-                     "unknown 32",
-                     "White blood cells 33",
-                     "unknown 34")
+SearchAllMarkers <- function(df, markers){
+        results <- lapply(markers,function(x) SearchMarker(df,x))
+        names(results) <- markers
+        temp_df = results[[1]]
+        for(i in 2:length(results)) {
+                temp_df = merge(temp_df,results[[i]], by="row.names",all=TRUE)
+                rownames(temp_df) = temp_df$Row.names
+                temp_df = temp_df[,-1]
+        }
+        removeNA(temp_df)
+        return(temp_df)
+}
+removeNA <- function(df){
+        AllNA = apply(df,2,function(x) length(which(!is.na(x))))
+        df = df[,AllNA !=0]
+        return(df)
+}
 
-Glioma@ident <- plyr::mapvalues(x = Glioma@ident,
-                                    from = old.ident.ids,
-                                    to = new.cluster.ids)
-DotPlot(Glioma, genes.plot = rev(markers.to.plot),
-        cols.use = c("blue","red"), x.lab.rot = T, plot.legend = T,
-        dot.scale = 8, do.return = T)
-# Glioma <- RenameIdentBack(Glioma)
+publised_markers <- HumanGenes(Glioma,sort(c(nature20123,science.1254257,
+                                             science.aai8478)),
+                               unique = T)
+Summary <- SearchAllMarkers(df = Refs_TCGA_IvyGbm_main, 
+                            markers = publised_markers)
+IDH_astrocytoma = removeNA(Summary["Astrocytes",])
+IDH_astrocytoma = colnames(IDH_astrocytoma)
 
 
-lnames = load(file = "./data/Glioma_alignment.Rda")
-lnames
-table(Glioma@ident)
-idents <- as.data.frame(table(Glioma@ident))
-old.ident.ids <- idents$Var1
-new.cluster.ids <- c("Other stem cells",
-                     "Spermatogonial stem cells",
-                     "Spermatogonial stem cells",
-                     "Defective sperm",
-                     "Collagen",
-                     "Spermatocyte",
-                     "Spermatocyte",
-                     "Spermatocyte",
-                     "Defective sperm",
-                     "Spermatocyte",
-                     "Defective sperm",
-                     "Spermatogonial stem cells",
-                     "Spermatocyte",
-                     "Spermatocyte",
-                     "Defective sperm",
-                     "Spermatocyte",
-                     "Spermatocyte",
-                     "Other stem cells",
-                     "Defective sperm",
-                     "Defective sperm",
-                     "unknown",
-                     "Spermatocyte",
-                     "Defective sperm",
-                     "Spermatocyte",
-                     "White blood cells",
-                     "Other stem cells",
-                     "Defective sperm",
-                     "Other stem cells",
-                     "Defective sperm",
-                     "White blood cells",
-                     "Spermatogonial stem cells",
-                     "Defective sperm",
-                     "unknown",
-                     "White blood cells",
-                     "unknown")
+SingleFeaturePlotSave(object = Glioma, feature.plot = IDH_astrocytoma)
+SingleFeaturePlotSave(object = Glioma, feature.plot = publised_markers,mkdir=F,
+                      folder.name = "ALL",threshold= 0.5)
 
-Glioma@ident <- plyr::mapvalues(x = Glioma@ident,
-                                    from = old.ident.ids,
-                                    to = new.cluster.ids)
-DotPlot(Glioma, genes.plot = rev(markers.to.plot),
-        cols.use = c("blue","red"), x.lab.rot = T, plot.legend = T,
-        dot.scale = 8, do.return = T)
-p1 <- TSNEPlot(Glioma, do.return = T, pt.size = 1, group.by = "orig.ident")
-p2 <- TSNEPlot(Glioma, do.return = T, pt.size = 1, group.by = "ident")
-#png('./output/TSNESplot_alignment.png')
-plot_grid(p1, p2)
+SingleFeaturePlotSave(object = Glioma, feature.plot = "OLIG2", mkdir=F,
+                      folder.name = "ALL",threshold= 1.5)
+SingleFeaturePlotSave(object = Glioma, feature.plot = "SOX2", mkdir=F,
+                      folder.name = "ALL",threshold= 2.0)
+SingleFeaturePlotSave(object = Glioma, feature.plot = "ALDOC", mkdir=F,
+                      folder.name = "ALL",threshold= 1.5)
+SingleFeaturePlotSave(object = Glioma, feature.plot = "ATRX", mkdir=F,
+                      folder.name = "ALL",threshold= 1.5)
+SingleFeaturePlotSave(object = Glioma, feature.plot = "VIM", mkdir=F,
+                      folder.name = "ALL",threshold= 5.)
+SingleFeaturePlotSave(object = Glioma, feature.plot = stemness, mkdir=F,
+                      folder.name = "ALL",threshold= 1.5)
 
-TSNEPlot(object = Glioma, no.legend = F, do.label = F,
-         do.return = TRUE, label.size = 5)+
-        ggtitle("TSNE plot of major cell types")+
-        theme(text = element_text(size=20),     #larger text including legend title							
-              plot.title = element_text(hjust = 0.5)) #title in middle
+Neurons = HumanGenes(Glioma,brainTxDbSets$neuronal_up)
+Neurons
+SingleFeaturePlotSave(object = Glioma, feature.plot = Neurons,mkdir=T,
+                      threshold= 0.1)
+SingleFeaturePlotSave(object = Glioma, feature.plot = "NEUROD6", mkdir=F,
+                      folder.name = "Neurons",threshold= .1)
+Astroglia = HumanGenes(Glioma,brainTxDbSets$astroglia_up)
+SingleFeaturePlotSave(object = Glioma, feature.plot = Astroglia,mkdir=T,
+                      threshold= 0.1)
+SingleFeaturePlotSave(object = Glioma, feature.plot = "IGFBP3",mkdir=F,
+                      folder.name = "Astroglia", threshold= 1.0)
 
-SpermatogonialSC <- SubsetData(Glioma,ident.use = "Spermatogonial stem cells")
-SpermatogonialSC_cells <- as.data.frame(table(SpermatogonialSC@meta.data$orig.ident))
-All_cells <- as.data.frame(table(Glioma@meta.data$orig.ident))
-SpermatogonialSC_cells$total <- All_cells$Freq
-SpermatogonialSC_cells$percentage <- SpermatogonialSC_cells$Freq/SpermatogonialSC_cells$total
-SpermatogonialSC_cells
+Mesenchymal = HumanGenes(Glioma,Refs_TCGA_IvyGbm_main$Fibroblasts[1:100])
+SingleFeaturePlotSave(object = Glioma, feature.plot = Mesenchymal,mkdir=T,
+                      threshold= 0.1)
+quiescence <- HumanGenes(Glioma,c("HES1", "TSC22D1", "KDM5B","NFIB"))
+SingleFeaturePlotSave(object = Glioma, feature.plot = quiescence,mkdir=T,
+                      threshold= 1.5)
 
-# FeatureHeatmap
-Glioma@meta.data$orig.ident <- gsub("Ad-","zAd-",Glioma@meta.data$orig.ident)
-x <- FeatureHeatmap(object = Glioma, features.plot = c("Txndc8","Spag16",
-                                                     "Gfra1","Dmrt1"),
-                    group.by = "orig.ident", sep.scale = T, pt.size = 0.5, 
-                    cols.use = c("gray98", "red"), pch.use = 20, do.return = T)
-
-x$data <- x$data[order(x$data$expression),]
-customize_Seurat_FeatureHeatmap(x, alpha.use = 0.8,
-                                scaled.expression.threshold = 0,
-                                gradient.use = c("orangered", "red4"))
-# histogram 
-lnames = load(file = "./data/Glioma_alignment.Rda")
-lnames
-genes <- c("Txndc8","Spag16","Gfra1","Dmrt1")
-CountsList <- list()
-for(i in 1:length(genes)) CountsList[[i]] <- CountsbyIdent(object = Glioma,
-                                                           subset.name = genes[i],
-                                                           accept.low = 1)
-CountsList[[length(genes)+1]] <- as.data.frame(table(Glioma@meta.data$orig.ident))
-library(plyr)
-CountsbyIdents <- join_all(CountsList, by='Var1', type='full')
-CountsbyIdents[is.na(CountsbyIdents)] <- 0
-rownames(CountsbyIdents) <- gsub("Ad-","zAd-",CountsbyIdents$Var1)
-CountsbyIdents <- CountsbyIdents[,-1]
-
-CountsbyIdents <- CountsbyIdents[sort(rownames(CountsbyIdents)),]
-CountsbyIdents
-
-percentbyIdents <- apply(CountsbyIdents,2,function(x){ x/CountsbyIdents$Freq } )
-percentbyIdents <- data.frame(percentbyIdents)
-percentbyIdents$samples <- rownames(percentbyIdents)
-percentbyIdents <- percentbyIdents[,!(colnames(percentbyIdents) %in% "Freq")]
-percentbyIdents
-library(reshape2)
-new_percentbyIdents <- melt(percentbyIdents,id=c("samples"))
-colnames(new_percentbyIdents)[2] <- "Gene.name"
-new_percentbyIdents
-ggplot(new_percentbyIdents, aes(x = samples, y = value, color = Gene.name)) +
-        geom_line(aes(group = Gene.name))+
-        ggtitle("Cell percentage with gene expression in each sample")+#ggplot title
-        theme(text = element_text(size=20),     #larger text including legend title							
-              plot.title = element_text(hjust = 0.5,size = 25, face = "bold"), #title in middle
-              axis.text.x  = element_text(angle=30, vjust=0.5))+#rotate xlab
-        guides(colour = guide_legend(override.aes = list(size=10)), #larger legend diagram 
-               shape = guide_legend(override.aes = list(size=10))) #larger legend diagram 
-
-
+Neurons = HumanGenes(Glioma,c("NEFL","GABRA1","SYT1","SLC12A5"))
+SingleFeaturePlotSave(object = Glioma, feature.plot = "SYT1", mkdir=F,
+                      folder.name = "Neurons",threshold= .1)
+SingleFeaturePlotSave(object = Glioma, feature.plot = "SLC12A5", mkdir=F,
+                      folder.name = "Neurons",threshold= .1)
