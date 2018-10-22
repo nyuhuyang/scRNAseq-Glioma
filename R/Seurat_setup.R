@@ -5,8 +5,9 @@
 # ######################################################################
 
 library(Seurat)
+library(scran)
 library(dplyr)
-source("./R/Seurat_functions.R")
+source("../R/Seurat_functions.R")
 ########################################################################
 #
 #  1 Seurat Alignment 
@@ -21,18 +22,19 @@ source("./R/Seurat_functions.R")
 # rename all "_" into "-" in sample names 
 Glioma_raw <- list()
 Glioma_Seurat <- list()
-samples <- c("PM1258-2D","PM1258-GLICO","PM1258-TO")
-conditions <- c("2D","GLICO","TO")
+Fine_meta_data = read.csv("./doc/Fine_meta_data.csv",stringsAsFactors = FALSE)
 
-for(i in 1:length(samples)){
+
+for(i in 1:nrow(Fine_meta_data)){
     Glioma_raw[[i]] <- Read10X(data.dir = paste0("./data/",
-                                                     samples[i],"/outs/filtered_gene_bc_matrices/hg19/"))
-    colnames(Glioma_raw[[i]]) <- paste0(samples[i],"_",colnames(Glioma_raw[[i]]))
+                                                 Fine_meta_data$samples[i],"/outs/filtered_gene_bc_matrices/hg19/"))
+    colnames(Glioma_raw[[i]]) <- paste0(Fine_meta_data$samples[i],"_",
+                                        colnames(Glioma_raw[[i]]))
     Glioma_Seurat[[i]] <- CreateSeuratObject(Glioma_raw[[i]],
                                            min.cells = 3,
                                            min.genes = 200,
                                            names.delim = "_")
-    Glioma_Seurat[[i]]@meta.data$conditions <- conditions[i]
+    Glioma_Seurat[[i]]@meta.data$conditions <- Fine_meta_data$conditions[i]
 }
 Glioma_Seurat <- lapply(Glioma_Seurat, FilterCells, 
                             subset.names = "nGene", 

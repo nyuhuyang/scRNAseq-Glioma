@@ -5,7 +5,6 @@
 # ######################################################################
 
 library(Seurat)
-
 library(dplyr)
 source("../R/Seurat_functions.R")
 
@@ -38,5 +37,8 @@ DoHeatmap.1(object = Glioma, genes.use = top$gene,
             group.cex = 15,
             rotate.key = T,group.label.rot = F)+
         ggtitle("Expression heatmap of top 30 differential expression genes in each group")+
-        theme(text = element_text(size=20),     #larger text including legend title							
-              plot.title = element_text(hjust = 0.5)) #title in middle
+        theme(text = element_text(size=20),
+              plot.title = element_text(hjust = 0.5))
+
+
+SingleFeaturePlot.1(object = Glioma, "FGF13",threshold = 0.1)
