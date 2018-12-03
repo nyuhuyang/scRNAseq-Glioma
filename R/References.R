@@ -81,9 +81,9 @@ save(Refs_TCGA_IvyGbm,file='./data/GeneSets/Refs_TCGA_IvyGbm.RData') # it is bes
 # extract marker gene list
 ################################################
 In <- load(file='./data/GeneSets/Refs_TCGA_IvyGbm.RData');In # it is best to name the object and the file with the same name.
-Refs_TCGA_IvyGbm_main = FindAllMarkerGenes(object = Refs_TCGA_IvyGbm, 
+Refs_TCGA_IvyGbm_main = CreatGenePanelFromSingleR(object = Refs_TCGA_IvyGbm,
                                         main.type = TRUE, Human =TRUE)
 write.csv(Refs_TCGA_IvyGbm_main,file = "./output/Refs_TCGA_IvyGbm_main.csv")
-Refs_TCGA_IvyGbm_sub = FindAllMarkerGenes(object = Refs_TCGA_IvyGbm, 
+Refs_TCGA_IvyGbm_sub = CreatGenePanelFromSingleR(object = Refs_TCGA_IvyGbm,
                                        main.type = FALSE, Human =TRUE)
 write.csv(Refs_TCGA_IvyGbm_sub,file = "./output/Refs_TCGA_IvyGbm_sub.csv")

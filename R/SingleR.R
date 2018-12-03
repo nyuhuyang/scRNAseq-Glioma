@@ -6,10 +6,8 @@ library(kableExtra)
 
 source("../R/Seurat_functions.R")
 #====== 3.1 Create Singler Object  ==========================================
-lnames = load(file = "./data/Glioma_alignment.Rda")
-lnames
-lname = load(file='./data/GeneSets/Refs_TCGA_IvyGbm.RData') 
-lname
+(load(file = "./data/Glioma_Harmony_20181201.Rda"))
+(load(file='./data/GeneSets/Refs_TCGA_IvyGbm.RData'))
 length(Refs_TCGA_IvyGbm$types)
 length(unique(Refs_TCGA_IvyGbm$types))
 length(unique(Refs_TCGA_IvyGbm$main_types))
@@ -19,9 +17,8 @@ DimPlot(object = Glioma, reduction.use = "tsne", no.legend = TRUE,
         do.label = TRUE,label.size = 8, group.by = "ident") + 
         ggtitle("Cluster ID") + 
         theme(plot.title = element_text(hjust = 0.5))
-singler = CreateSinglerObject(as.matrix(Glioma@data), annot = Glioma@ident,
-                                 project.name=Glioma@project.name,
-                              do.main.types = T,
+singler = CreateSinglerObject(Glioma@data, annot = Glioma@ident,
+                              project.name=Glioma@project.name,
                               min.genes = 500,technology = "10X", species = "Human", 
                               citation = "",ref.list = list(Refs_TCGA_IvyGbm), 
                               normalize.gene.length = F,
