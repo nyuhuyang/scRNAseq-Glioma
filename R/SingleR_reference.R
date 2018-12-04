@@ -118,6 +118,7 @@ colnames(GBMLGG_counts) <- gsub("\\.","-",colnames(GBMLGG_counts))
 GBMLGG_counts[1:5,1:5]
 GBMLGG_counts <- GBMLGG_counts[,(colnames(GBMLGG_counts) %in% rownames(df_subtype))]
 dim(GBMLGG_counts)
+dup <- grep("-02$",colnames(GBMLGG_counts),value = T)
 
 #=============Seruat========================
 GBMLGG <- CreateSeuratObject(raw.data = GBMLGG_counts, project = "TCGA_GBM_LGG",

@@ -2,6 +2,114 @@ library(Seurat)
 library(dplyr)
 source("../R/Seurat_functions.R")
 
+(load(file = "./data/Glioma_Harmony_20181201.Rda"))
+##############################
+# geom_density
+##############################
+
+markers <- HumanGenes(Glioma,c("EGFR","FGF13","TP53","CCND2","ATRX"))
+tests <- paste0("test",1:5)
+for(test in tests){
+    sample_n = which(df_samples$tests %in% test)
+    samples <- unique(df_samples$samples[sample_n])
+    print(samples)
+    
+    cell.use <- rownames(Glioma@meta.data)[Glioma@meta.data$orig.ident %in% samples]
+    subset.Glioma <- SubsetData(Glioma, cells.use = cell.use)
+    
+    g <- split(rownames(subset.Glioma@meta.data), 
+               subset.Glioma@meta.data[,"orig.ident"]) %>% 
+        lapply(function(cells_use) {
+    single.Glioma <- SubsetData(subset.Glioma, cells.use = cells_use)
+    sample <- unique(single.Glioma@meta.data$orig.ident)
+    data.use <- single.Glioma@data[markers,] %>% as.matrix %>% t %>% as.data.frame %>%
+            tidyr::gather(key = markers, value = ave.expr)
+    ggplot(data.use, aes(x = ave.expr, color = markers)) + 
+            geom_density(size = 1) +
+            scale_y_sqrt() + ylim(0, 1)+
+            xlab("log nUMI")+
+            ggtitle(sample)+
+            theme(text = element_text(size=15),
+                  #legend.position="none", 
+                  legend.position=c(0.3,0.85) ,
+                  plot.title = element_text(hjust = 0.5,size = 15, face = "bold"))
+    })
+    jpeg(paste0(path,"density_",test,".jpeg"), units="in", width=10, height=7,res=600)
+    print(do.call(plot_grid,c(g,nrow = 1))+ #   plot_grid(g[[1]],g[[5]],g[[4]],g[[3]],g[[2]])
+              ggtitle("Density plot for markers in Glioma")+
+              theme(text = element_text(size=15),							
+                    plot.title = element_text(hjust = 0.5,size = 15, face = "bold")))
+    dev.off()
+}
+
+
+##############################
+# SingleFeaturePlot
+##############################
+df_samples <- readxl::read_excel("doc/181002_Single_cell_sample list.xlsx")
+tests <- paste0("test",c(1:5))
+markers <- HumanGenes(Glioma,c("TP53","EGFR","CDKN2A","FGF13","PTEN"))
+for(test in tests){
+    sample_n = which(df_samples$tests %in% test)
+    samples <- unique(df_samples$samples[sample_n])
+    print(samples)
+    
+    cell.use <- rownames(Glioma@meta.data)[Glioma@meta.data$orig.ident %in% samples]
+    subset.Glioma <- SubsetData(Glioma, cells.use = cell.use)
+    SplitSingleFeaturePlot(subset.Glioma,group.by = "ident",split.by = "orig.ident",
+                       no.legend = T,label.size=3,do.print =T,markers = markers,
+                       threshold = 0.1)
+}
+
+# Split Seurat by certein criteria and make tsne plot
+#' @param object Seurat object
+#' @param split.by the criteria to split, can be gene name, or any variable in meta.data
+#' @param select.plots output order, default to NULL. If want to change,use c(2,1) for example
+#' @param return.data TRUE/FASLE, return splited ojbect or not.
+#' @export p ggplot object from barchart
+#' @example SplitBarchart(Glioma, group.by = "ident",split.by = "orig.ident")
+SplitSingleFeaturePlot<- function(object, split.by = "orig.ident",select.plots = NULL, 
+                                  markers, do.return = TRUE, do.print = TRUE,
+                                  do.label = T, group.by = "ident", threshold=0.1,
+                                  pt.size = 1,label.size = 5,size=20,... ){
+    
+    
+    object.subsets <- SplitSeurat(object = object, split.by = split.by)
+    levels <- object.subsets[[length(object.subsets)]]
+
+    if(is.null(select.plots)) select.plots <- 1:length(levels)
+    for(marker in markers){
+        g <- list()
+        for(i in 1:length(select.plots)){
+            g[[i]] <- SingleFeaturePlot.1(object = object.subsets[[select.plots[i]]],
+                                          threshold=threshold,
+                                          feature = marker,title = levels[select.plots[i]])
+        }
+        g <- g[lapply(g,length)>0] # remove NULL element
+        if(do.print) {
+            path <- paste0("./output/",gsub("-","",Sys.Date()),"/")
+            if(!dir.exists(path)) dir.create(path, recursive = T)
+            jpeg(paste0(path,"SplitSingleFeaturePlot_",levels[select.plots[i]],
+                        "_",marker,".jpeg"), units="in", width=10, height=7,
+                 res=600)
+            print(do.call(cowplot::plot_grid, c(g, align = "hv")))
+            print(paste0(which(markers == marker),":",length(markers)))
+            dev.off()
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 #====== 2.1 identify phenotype for each cluster  ==========================================
 lnames = load(file = "./data/Glioma_alignment.Rda")
 lnames
@@ -138,26 +246,7 @@ Fibroblast <- HumanGenes(Glioma,c("FGF1","FGF9","SFRP1"))
 Epithelium <- HumanGenes(Glioma,c("Epcam","KRT19","KRT5",
                                   "MUC1","SCGB3A2","SCGB1A1","SCGB3A1","SFTPB","FOXJ1","Rpe65",
                                   "Rlbp1","Msln","Upk3b","Lrrn4"))
-# Glioma
-SingleFeaturePlotSave <- function(object = object, feature.plot, 
-                                  folder.name=NULL,mkdir=FALSE,
-                                  threshold = 0.1){
-        if(mkdir) {
-                if(is.null(folder.name)) {
-                        folder.name = deparse(substitute(feature.plot))
-                }
-                icesTAF::mkdir(paste0("./output/tsne/",folder.name))
-        } 
-        for (i in 1:length(feature.plot)) {
-                temp_plot = SingleFeaturePlot.1(object = object, 
-                                                feature = feature.plot[i],
-                                                threshold=threshold)
-                ggsave(temp_plot, file=paste0("./output/tsne/",folder.name,
-                                              "/",feature.plot[i],".jpeg"),
-                       width = 35.28, height = 24.69, units = "cm"
-                )
-        }
-}
+
 # "Single-cell RNA-seq supports a developmental hierarchy in human oligodendroglioma" nature20123
 IDH_oligodendroglioma <- HumanGenes(Glioma,c("OLIG2", "OMG"))
 IDH_astrocytoma <- HumanGenes(Glioma,c("APOE", "ALDOC", "SOX9", "GFAP"))
