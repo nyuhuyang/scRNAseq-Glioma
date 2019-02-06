@@ -61,55 +61,6 @@ for(test in tests){
                        threshold = 0.1)
 }
 
-# Split Seurat by certein criteria and make tsne plot
-#' @param object Seurat object
-#' @param split.by the criteria to split, can be gene name, or any variable in meta.data
-#' @param select.plots output order, default to NULL. If want to change,use c(2,1) for example
-#' @param return.data TRUE/FASLE, return splited ojbect or not.
-#' @export p ggplot object from barchart
-#' @example SplitBarchart(Glioma, group.by = "ident",split.by = "orig.ident")
-SplitSingleFeaturePlot<- function(object, split.by = "orig.ident",select.plots = NULL, 
-                                  markers, do.return = TRUE, do.print = TRUE,
-                                  do.label = T, group.by = "ident", threshold=0.1,
-                                  pt.size = 1,label.size = 5,size=20,... ){
-    
-    
-    object.subsets <- SplitSeurat(object = object, split.by = split.by)
-    levels <- object.subsets[[length(object.subsets)]]
-
-    if(is.null(select.plots)) select.plots <- 1:length(levels)
-    for(marker in markers){
-        g <- list()
-        for(i in 1:length(select.plots)){
-            g[[i]] <- SingleFeaturePlot.1(object = object.subsets[[select.plots[i]]],
-                                          threshold=threshold,
-                                          feature = marker,title = levels[select.plots[i]])
-        }
-        g <- g[lapply(g,length)>0] # remove NULL element
-        if(do.print) {
-            path <- paste0("./output/",gsub("-","",Sys.Date()),"/")
-            if(!dir.exists(path)) dir.create(path, recursive = T)
-            jpeg(paste0(path,"SplitSingleFeaturePlot_",levels[select.plots[i]],
-                        "_",marker,".jpeg"), units="in", width=10, height=7,
-                 res=600)
-            print(do.call(cowplot::plot_grid, c(g, align = "hv")))
-            print(paste0(which(markers == marker),":",length(markers)))
-            dev.off()
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
 #====== 2.1 identify phenotype for each cluster  ==========================================
 lnames = load(file = "./data/Glioma_alignment.Rda")
 lnames

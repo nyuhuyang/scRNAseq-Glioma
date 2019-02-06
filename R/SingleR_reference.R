@@ -71,31 +71,30 @@ samples_df <- strsplit(subtype$samples, split = "\\.") %>% unlist %>%
 subtype_df <- cbind.data.frame(samples_df,"subtype" = subtype$subtype)
 colnames(subtype_df) <- c("samples","rna_methy","subtype")
 table(subtype_df$rna_methy)
-subtype_df[(subtype_df$samples %in% colnames(GBMLGG_counts)),"rna_methy"]
+subtype_df[(subtype_df$samples %in% colnames(GBMLGG_RSEM)),"rna_methy"]
 # add .02 duplicate
 subtype_df_02<- subtype_df[(subtype_df$samples %in% gsub("-02$","",dup)),]
 
 subtype_df_02$samples <- paste0(subtype_df_02$samples,"-02")
 df_subtype <- rbind.data.frame(subtype_df,subtype_df_02)
 rownames(df_subtype) <- df_subtype$samples
-df_subtype <- df_subtype[(df_subtype$samples %in% colnames(GBMLGG_counts)),-1]
+df_subtype <- df_subtype[(df_subtype$samples %in% colnames(GBMLGG_RSEM)),-1]
 dim(df_subtype)
 table(df_subtype$subtype)
 
-GBMLGG_RSEM <- GBMLGG_RSEM[,(colnames(GBMLGG_RSEM) %in% rownames(df_subtype))]
-dim(GBMLGG_RSEM)
-df_subtype <- df_subtype[colnames(GBMLGG_RSEM),]
+df_subtype <- df_subtype[(df_subtype$subtype %in% c("Classical", "Mesenchymal",
+                                                    "Neural", "Proneural")),]
+dim(df_subtype)
+GBM_RSEM <- GBMLGG_RSEM[,(colnames(GBMLGG_RSEM) %in% rownames(df_subtype))]
+dim(GBM_RSEM)
+df_subtype <- df_subtype[colnames(GBM_RSEM),]
 # Create Singler Reference
 ref = CreateSinglerReference(name = 'GBMLGG_RSEM',
-                             expr = log1p(GBMLGG_RSEM), # the expression matrix
+                             expr = log1p(GBM_RSEM), # the expression matrix
                              types = df_subtype$subtype, 
                              main_types = df_subtype$subtype)
 
-save(ref,file='data/GeneSets/ref_GBMLGG_RSEM.RData') # it is best to name the object and the file with the same name.
-
-
-
-
+save(ref,file='data/GeneSets/ref_GBM_RSEM.RData') # it is best to name the object and the file with the same name.
 
 # check GBMLGG exprs counts data==============================
 GBMLGG_counts <- read.delim2(paste("data","GBMLGG.mRNAseq_Preprocess.Level_3",

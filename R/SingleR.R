@@ -9,23 +9,24 @@ path <- paste0("./output/",gsub("-","",Sys.Date()),"/")
 if(!dir.exists(path)) dir.create(path, recursive = T)
 #====== 3.1 Create Singler Object  ==========================================
 (load(file = "./data/Glioma_Harmony_20181201.Rda"))
-(load(file='./data/GeneSets/ref_GBMLGG_RSEM.RData'))
+(load(file='./data/GeneSets/ref_GBM_RSEM.RData'))
 length(ref$types)
 length(unique(ref$types))
 length(unique(ref$main_types))
 #pca
-DimPlot(object = Glioma, reduction.use = "tsne", no.legend = TRUE,
+TSNEPlot.1(object = Glioma, no.legend = TRUE,
         do.return = TRUE,vector.friendly = F, pt.size = 1,
         do.label = TRUE,label.size = 8, group.by = "ident") + 
         ggtitle("Cluster ID") + 
         theme(plot.title = element_text(hjust = 0.5))
-singler = CreateSinglerObject(Glioma@data, annot = Glioma@ident,
-                              project.name=Glioma@project.name,
+Glioma <- SetAllIdent(Glioma, id = "res.0.6")
+singler = CreateSinglerObject(as.matrix(Glioma@data), annot = Glioma@ident,
+                              project.name="Glioma",
                               min.genes = 500,technology = "10X", species = "Human", 
                               citation = "",ref.list = list(ref), 
                               normalize.gene.length = F,
                               variable.genes = "de",
-                              fine.tune = T, do.signatures = F, clusters = NULL) # run in cluster
+                              fine.tune = F, do.signatures = F, clusters = NULL) # run in cluster
 # if singler didn't find all cell labels
 length(singler$singler[[1]]$SingleR.single$labels) == ncol(Glioma@data)
 singler$meta.data$orig.ident = Glioma@meta.data$orig.ident # the original identities, if not supplied in 'annot'
