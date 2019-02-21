@@ -82,19 +82,21 @@ df_subtype <- df_subtype[(df_subtype$samples %in% colnames(GBMLGG_RSEM)),-1]
 dim(df_subtype)
 table(df_subtype$subtype)
 
-df_subtype <- df_subtype[(df_subtype$subtype %in% c("Classical", "Mesenchymal",
-                                                    "Neural", "Proneural")),]
-dim(df_subtype)
-GBM_RSEM <- GBMLGG_RSEM[,(colnames(GBMLGG_RSEM) %in% rownames(df_subtype))]
+df_new_subtype <- df_subtype[(df_subtype$subtype %in% c("Classical", "Mesenchymal",
+                                                    "Neural", "Proneural","IDHwt")),]
+dim(df_new_subtype)
+GBM_RSEM <- GBMLGG_RSEM[,(colnames(GBMLGG_RSEM) %in% rownames(df_new_subtype))]
 dim(GBM_RSEM)
-df_subtype <- df_subtype[colnames(GBM_RSEM),]
+df_new_subtype <- df_new_subtype[colnames(GBM_RSEM),]
 # Create Singler Reference
-ref = CreateSinglerReference(name = 'GBMLGG_RSEM',
+ref = CreateSinglerReference(name = 'GBM_RSEM',
                              expr = log1p(GBM_RSEM), # the expression matrix
-                             types = df_subtype$subtype, 
-                             main_types = df_subtype$subtype)
+                             types = df_new_subtype$subtype, 
+                             main_types = df_new_subtype$subtype)
 
 save(ref,file='data/GeneSets/ref_GBM_RSEM.RData') # it is best to name the object and the file with the same name.
+
+
 
 # check GBMLGG exprs counts data==============================
 GBMLGG_counts <- read.delim2(paste("data","GBMLGG.mRNAseq_Preprocess.Level_3",

@@ -314,7 +314,7 @@ set.seed(100)
 original <- lapply(sce_list, function(x) logcounts(x)[chosen,])
 # Slightly convoluted call to avoid re-writing code later.
 # Equivalent to fastMNN(GSE81076, GSE85241, k=20, d=50, approximate=TRUE)
-mnn.out <- do.call(fastMNN, c(original, list(k=20, d=50, approximate=TRUE)))
+mnn.out <- do.call(fastMNN, c(list(B1,B2,B3), list(k=20, d=50, approximate=TRUE)))
 dim(mnn.out$corrected)
 mnn.out$batch
 mnn.out$pair
