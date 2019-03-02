@@ -3,7 +3,7 @@
 #$ -j y
 #$ -m a
 #$ -M yah2014@med.cornell.edu
-#$ -l h_vmem=60G
+#$ -l h_vmem=80G
 #$ -l athena=true
 #$ -q *@@red
 
@@ -12,6 +12,7 @@ spack load -r samtools@1.8
 spack load -r zlib@1.2.11
 spack load -r openssl@1
 
+samtools --version
 #---------------------Variables to be set-------------------------#
 PROJECT_NAME="scRNAseq-Glioma"
 path=/athena/elementolab/scratch/yah2014/Projects/${PROJECT_NAME}/data/bam
