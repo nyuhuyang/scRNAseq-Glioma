@@ -46,7 +46,7 @@ echo "Processing velocyto run10x"
 echo " "
 echo "-------------------------------- "
 echo "Processing $file_folder"
-velocyto run -b barcodes.tsv -o velocyto -e $file_folder -m $rmsk_gtf possorted_genome_bam.bam $genes_gtf
+velocyto run -b barcodes.tsv -o velocyto -e $file_folder -m $rmsk_gtf $TMPDIR/$file_folder/possorted_genome_bam.bam $genes_gtf
 echo "velocyto run10x Complished"
 echo "velocyto output files:"
 echo $(ls -l $TMPDIR/$file_folder/velocyto/)
