@@ -1,7 +1,6 @@
 import argparse
-parser = argparse.ArgumentParser(description='select a integer, start from 1')
-parser.add_argument("ID", help="Select file to process according to SGE_TASK_ID integer",
-                    type=int)
+parser = argparse.ArgumentParser(description='select a group name, for example:"PM1415"')
+parser.add_argument("ID", help="merge a group of loom files according to the group name")
 args = parser.parse_args()
 print(args.ID)
 import os
@@ -11,12 +10,12 @@ path="/athena/elementolab/scratch/yah2014/Projects/scRNAseq-Glioma/data/velocyto
 os.chdir(path) # change current path
 print(os.getcwd())
 # List all filer folder's names.
-file_folders=os.listdir()  # list files
-file=file_folders[args.ID-1]
-print(file)
+file_folders=os.listdir(os.getcwd())  # list files
+files=[s for s in file_folders if args.ID in s]
+print(files)
 
-# Select the file according to SGE_TASK_ID
-file_path=os.path.join(path, file, "velocyto",file+'.loom')
-print("file_path= "+file_path)
 
+# on the command line do: cp file1.loom merged.loom
+output_filename=args.ID+"_merged.loom"
+loompy.combine(files, output_filename, key="Accession")
 
