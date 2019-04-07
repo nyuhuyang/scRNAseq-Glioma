@@ -17,9 +17,6 @@ if(!dir.exists(path)) dir.create(path, recursive = T)
 ###############################
 singlerDF = data.frame("singler1sub"=singler$singler[[1]]$SingleR.single$labels,
                        "singler1main"=singler$singler[[1]]$SingleR.single.main$labels,
-                       "singler2sub"=singler$singler[[2]]$SingleR.single$labels,
-                       "singler2main"=singler$singler[[2]]$SingleR.single.main$labels,
-                       "kang" = FineTune(singler$other, main.type = FALSE),
                        row.names = rownames(singler$singler[[1]]$SingleR.single$labels))
 
 table(rownames(singlerDF) %in% Glioma@cell.names)
@@ -66,9 +63,8 @@ singler_colors1[duplicated(singler_colors1)];singler_colors2[duplicated(singler_
 length(singler_colors1);length(singler_colors2)
 apply(Glioma@meta.data[,c("singler1sub","singler1main","singler2sub","singler2main")],
       2,function(x) length(unique(x)))
-Glioma@meta.data[,c("singler2sub")] %>% table() %>% kable() %>% kable_styling()
+Glioma@meta.data[,c("singler1sub")] %>% table() %>% kable() %>% kable_styling()
 Glioma <- AddMetaColor(object = Glioma, label= "singler1sub", colors = singler_colors1[1:8])
-Glioma <- AddMetaColor(object = Glioma, label= "singler2sub", colors = singler_colors2[1:21])
 Glioma <- SetAllIdent(object = Glioma, id = "singler1sub")
 TSNEPlot.1(Glioma, colors.use = ExtractMetaColor(Glioma),no.legend = F)
 
@@ -87,7 +83,6 @@ jpeg(paste0(path,"PlotTsne_sub1.jpeg"), units="in", width=10, height=7,
      res=600)
 print(p3)
 dev.off()
-
 save(Glioma,file="./data/Glioma_Harmony_20181201.Rda")
 ##############################
 # subset Seurat
